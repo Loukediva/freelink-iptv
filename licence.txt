@@ -1,0 +1,18 @@
+CONTRAT DE LICENCE UTILISATEUR FINAL (CLUF) - FREELINK IPTV
+
+1. UTILISATION DU LOGICIEL
+Freelink IPTV est un lecteur multimédia technique. Il ne fournit aucun contenu, 
+aucune chaîne de télévision ni aucune playlist par défaut.
+
+2. RESPONSABILITÉ DE L'UTILISATEUR
+L'utilisateur est seul responsable du contenu qu'il charge dans l'application. 
+L'utilisation de playlists obtenues illégalement est strictement interdite.
+
+3. PROPRIÉTÉ INTELLECTUELLE
+Le logiciel Freelink IPTV est la propriété de EKATECH. Toute reproduction 
+non autorisée est interdite.
+
+4. EXCLUSION DE GARANTIE
+Le logiciel est fourni "en l'état", sans garantie de fonctionnement ininterrompu.
+
+En cliquant sur "J'accepte", vous reconnaissez avoir pris connaissance de ces termes.

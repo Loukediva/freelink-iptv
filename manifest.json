@@ -1,0 +1,24 @@
+{
+  "name": "Freelink IPTV",
+  "short_name": "Freelink",
+  "description": "Lecteur IPTV fluide et moderne",
+  "start_url": "/freelink-iptv/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f0f0f",
+  "theme_color": "#00c4cc",
+  "scope": "/freelink-iptv/",
+  "icons": [
+    {
+      "src": "web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

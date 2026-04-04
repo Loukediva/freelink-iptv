@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta charset="UTF-8">
+    <title>Freelink IPTV</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.0.0"></script>
+    
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="./site.webmanifest">
+    <meta name="theme-color" content="#00c4cc">
+    <meta name="referrer" content="no-referrer">
+    <style>
+        :root {
+            --primary-color: #00c4cc;
+            --bg-dark: #0f0f0f;
+            --sidebar-bg: #181818;
+            --text-main: #ffffff;
+            --text-dim: #aaaaaa;
+        }
+
+        body { 
+            margin: 0; 
+            display: flex; 
+            height: 100vh; 
+            background: var(--bg-dark); 
+            color: var(--text-main); 
+            font-family: 'Inter', 'Segoe UI', sans-serif; 
+            overflow: hidden; 
+            overscroll-behavior-y: contain;
+        }
+
+        /* Sidebar */
+        #sidebar { 
+            width: 350px; 
+            background: var(--sidebar-bg); 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 4px 0 15px rgba(0,0,0,0.5);
+            z-index: 10;
+            transition: transform 0.3s ease;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        #search, #categoryFilter, #qualitySelect {
+            padding: 10px 15px; 
+            background: #252525; 
+            border: 1px solid #333; 
+            margin: 5px 10px;
+            border-radius: 8px;
+            color: white; 
+            font-size: 0.9rem; 
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #search:focus { border-color: var(--primary-color); }
+
+        #channelList { flex: 1; overflow-y: auto; padding: 5px; scroll-behavior: smooth;
+        mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
+    -webkit-overflow-scrolling: touch; scrollbar-width: thin;
+    will-change: transform; transform: translateZ(0);
+}
+
+        #favQuickAccess.active:hover {
+    background: #ffdb6e;
+    transform: translateY(-2px);
+}
+
+        .channel { 
+            padding: 10px 12px; 
+            margin: 4px 8px;
+            border-radius: 8px;
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.03);
+            scroll-margin: 10px;
+            outline: none;
+        }
+
+        .channel:hover { background: #333; transform: translateX(5px); }
+        .channel.active { background: rgba(0, 196, 204, 0.15); border-left: 4px solid var(--primary-color); }
+
+        .channel img { 
+            width: 40px; 
+            height: 30px; 
+            margin-right: 12px; 
+            object-fit: contain; 
+            background: #222; 
+            border-radius: 4px;
+            flex-shrink: 0; 
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .channel img[src] {
+             opacity: 1;
+        }
+
+        .channel span { 
+            font-size: 0.95rem; 
+            font-weight: 500; 
+            line-height: 1.3;
+            color: var(--text-main);
+            
+            flex: 1;
+            margin-right: 10px;
+
+            display: -webkit-box;
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+        }
+        
+        .fav-btn {
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: #444;
+            transition: 0.2s;
+            padding: 10px;
+            flex-shrink: 0;
+            height: 100%;
+            margin-left: auto;
+        }
+        .fav-btn.active { color: #ffc107; }
+        .fav-btn:hover { transform: scale(1.2); }
+        
+        #loadMore { 
+    margin: 8px 12px 15px 12px; background: rgba(255, 255, 255, 0.05); color: var(--primary-color);  border: 1px solid rgba(0, 196, 204, 0.2); padding: 10px; cursor: pointer;  font-weight: bold; width: calc(100% - 20px); margin: 5px; border-radius: 8px; transition: all 0.3s; }
+
+        #loadMore:hover { background: rgba(0, 196, 204, 0.1); border-color: var(--primary-color); }
+
+        /* Pour Chrome, Edge et Safari (Tablette Android/iOS) */
+#channelList::-webkit-scrollbar {
+    width: 6px;
+}
+
+#channelList::-webkit-scrollbar-track {
+    background: var(--sidebar-bg);
+}
+
+#channelList::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+}
+
+#channelList::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* Pour Firefox */
+#channelList {
+    scrollbar-width: thin;
+    scrollbar-color: #333 var(--sidebar-bg);
+}
+
+        #playerContainer { 
+            flex: 1; 
+            background: radial-gradient(circle, #222 0%, #000 100%); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
+        }
+
+        video { width: 100%; height: auto; max-height: 100vh; }
+
+        #loader { 
+            display: none; position: absolute; border: 4px solid #f3f3f3; 
+            border-top: 4px solid var(--primary-color); border-radius: 50%; 
+            width: 40px; height: 40px; animation: spin 1s linear infinite; z-index: 5;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        #errorMessage { 
+            display: none; position: absolute; color: white; font-weight: bold; 
+            background: rgba(255, 0, 0, 0.8); padding: 12px; border-radius: 10px; z-index: 10;
+        }
+
+        /* --- MODIFICATION : Contrôles interactifs --- */
+        #videoControls {
+            position: absolute;
+            pointer-events: none;
+            top: 20px;
+            right: 20px;
+            z-index: 30;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        #currentChannelInfo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 25;
+            display: none;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 12px 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+            border-left: 5px solid var(--primary-color);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* Affichage au survol du lecteur */
+        #playerContainer:hover #videoControls,
+        #playerContainer:hover #currentChannelInfo { 
+            opacity: 1; 
+            visibility: visible;
+        }
+
+        #qualitySelect {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--primary-color);
+            margin: 0;
+            pointer-events: auto;
+        }
+
+        #refreshBtn:hover { color: var(--primary-color); transform: scale(1.1); }
+        .spinning { animation: spin 1s linear infinite; }
+
+/* --- UNIFICATION GLOBALE DE LA SIDEBAR --- */
+#installBtn, #favQuickAccess, #search, #categoryFilter, #privateActionsContainer {
+    width: calc(100% - 24px) !important;
+    margin: 0 12px 8px 12px !important;
+    box-sizing: border-box;
+}
+
+/* Boutons standards (Pleine largeur) */
+#installBtn, #favQuickAccess, #search, #categoryFilter {
+    height: 42px !important;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+}
+
+/* Conteneur des boutons côte à côte */
+#privateActionsContainer {
+    display: flex;
+    gap: 8px; /* Espace entre les deux boutons */
+    height: 42px;
+}
+
+#privateActionsContainer button {
+    flex: 1; /* Partage 50/50 de la largeur */
+    height: 100% !important;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+    margin: 0 !important; /* Important : annule les marges héritées */
+}
+
+/* Styles spécifiques aux états */
+#lockBtn {
+    background: #222;
+    border: 1px solid #444;
+    color: white;
+}
+
+#addChannelBtn {
+    background: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+#lockBtn:hover, #addChannelBtn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.2);
+}
+
+#search {
+    justify-content: flex-start !important;
+    text-align: left;
+}
+
+/* Favoris (Doré) */
+#favQuickAccess {
+    background: rgba(255, 193, 7, 0.05);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    color: #ffc107;
+}
+
+#favQuickAccess.active {
+    background: #ffc107;
+    color: #000;
+    box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
+}
+
+/* --- AJUSTEMENT DES INPUTS (Recherche & Filtres) --- */
+
+#favCount {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2px 4px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
+
+#favQuickAccess.active #favCount {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+        #favQuickAccess:hover { background: #ffc107; color: #000; }
+
+        .brand-logo {
+            width: 60px; 
+            height: 60px; 
+            object-fit: contain;
+            border-radius: 12px;
+            background: white;
+            padding: 5px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(0, 196, 204, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            #sidebar { position: absolute; left: -350px; height: 100%; }
+            #sidebar.open { transform: translateX(350px); }
+            #menuToggle { display: block !important; position: fixed; top: 15px; left: 15px; padding-top: env(safe-area-inset-top); }
+            #playerContainer { width: 100vw; }
+            .channel { padding: 18px 15px; margin: 8px; scroll-margin: 10px; }
+            #currentChannelInfo { top: 60px; }
+        }
+
+ .channel:focus {
+    background: var(--primary-color) !important;
+    color: #000 !important;
+    outline: none;
+    transform: scale(1.02);
+    outline: none;
+    box-shadow: 0 0 20px rgba(0, 196, 204, 0.4);
+}
+
+.channel:focus-visible {
+    outline: 3px solid var(--primary-color);
+    background: rgba(0, 196, 204, 0.2);
+    transition: transform 0.2s ease;
+    z-index: 2;
+}
+
+    /* À ajouter dans ton bloc <style> */
+#channelList::-webkit-scrollbar {
+    width: 6px;
+}
+#channelList::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+}
+#channelList::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+.channel {
+    user-select: none; /* Empêche la sélection de texte au clic */
+    -webkit-tap-highlight-color: transparent; /* Retire le flash bleu sur mobile */
+    scroll-margin: 10px;
+}
+
+/* Met en avant les contenus du club dans la liste */
+.channel[data-group*="01."], 
+.channel[data-group*="02."],
+.channel[data-group*="03."] {
+    background: rgba(0, 196, 204, 0.05);
+    border-right: 2px solid var(--primary-color);
+}
+
+/* Cache le bouton par défaut */
+#installBtn {
+    display: none;
+}
+
+/* Tente de masquer les overlays d'extensions de téléchargement sur le lecteur */
+div[class*="idm"], div[id*="idm"], .idm_browser_extension_overlay {
+    display: none !important;
+}
+
+#lockBtn.unlocked {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.channel[data-group="CLUB"], .channel[data-group="MES FLUX"] {
+    border-left: 3px solid var(--primary-color);
+    background: rgba(var(--primary-rgb), 0.05);
+}
+
+html, body {
+    position: fixed;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+/* Permet le défilement uniquement dans la liste */
+#channelList {
+    -webkit-overflow-scrolling: touch;
+}
+
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <div style="text-align: center; padding: 25px 15px 20px 15px; position: relative;">
+        <button id="refreshBtn" title="Actualiser la playlist" 
+                style="position: absolute; right: 20px; top: 25px; background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1.2rem;">
+            ↻
+        </button>
+        <img src="freelink_icon.ico" alt="Logo" class="brand-logo">
+        <h2 style="margin: 12px 0 0; font-size: 1.2rem; color: var(--primary-color); letter-spacing: 3px; font-weight: 800; text-transform: uppercase;">
+            Freelink
+        </h2>
+    </div>
+
+    <button id="installBtn" style="display:none; margin: 10px 15px; padding: 12px; background: var(--primary-color); border: none; border-radius: 8px; color: black; font-weight: bold; cursor: pointer;">
+        📥 Installer l'application
+    </button>
+
+    <div id="privateActionsContainer">
+    <button id="lockBtn" onclick="maFonctionDeDeverrouillage()">
+        🔒 <span id="lockText">Déverrouiller</span>
+    </button>
+
+    <button id="addChannelBtn" onclick="document.getElementById('addChannelModal').style.display='flex'" style="display: none;">
+        <span class="plus-icon">+</span> Flux
+    </button>
+</div>
+
+    <button id="favQuickAccess">
+        ⭐ Favoris (<span id="favCount">0</span>)
+    </button>
+
+    <input type="text" id="search" placeholder="Rechercher une chaîne...">
+    
+    <select id="categoryFilter">
+        <option value="all">Toutes les catégories</option>
+    </select>
+    
+    <div id="channelList">Chargement...</div>
+    <button id="loadMore" style="display:none;">Charger plus...</button>
+</div>
+
+<div id="playerContainer">
+    <div id="currentChannelInfo">
+        <img id="currentLogo" src="" onerror="this.src='https://via.placeholder.com/40x30?text=TV'" style="width: 45px; height: 35px; object-fit: contain; margin-right: 15px; background: #000; border-radius: 4px;">
+        <div>
+            <div style="font-size: 0.7rem; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 2px;">En cours de lecture</div>
+            <h3 id="currentTitle" style="margin: 0; font-size: 1.1rem; color: white; font-weight: 600;">Nom de la chaîne</h3>
+        </div>
+    </div>
+
+    <div id="loader"></div>
+    <div id="errorMessage">Ce flux est actuellement indisponible</div>
+    
+    <div id="videoControls">
+        <select id="qualitySelect">
+            <option value="-1">Qualité : Auto</option>
+        </select>
+    </div>
+    
+    <button id="menuToggle" style="position: absolute; top: 10px; left: 10px; z-index: 100; background: var(--primary-color); border: none; border-radius: 5px; padding: 10px; color: white; cursor: pointer; display: none;">
+        ☰ Menu
+    </button>
+
+    <video id="video" playsinline controls disablePictureInPicture controlsList="nodownload"></video>
+
+    <div id="addChannelModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
+    <div style="background:#1a1a1a; padding:20px; border-radius:12px; border:1px solid var(--primary-color); width:90%; max-width:400px;">
+        <h3 style="color:var(--primary-color); margin-top:0;">Nouveau Flux</h3>
+        <input type="text" id="newChannelName" placeholder="Nom de la chaîne" style="width:100%; padding:10px; margin-bottom:10px; background:#222; border:1px solid #444; color:white; border-radius:5px;">
+        <input type="text" id="newChannelUrl" placeholder="URL du flux (.m3u8)" style="width:100%; padding:10px; margin-bottom:20px; background:#222; border:1px solid #444; color:white; border-radius:5px;">
+        <div style="display:flex; gap:10px;">
+            <button onclick="saveNewChannel()" style="flex:1; padding:10px; background:var(--primary-color); border:none; border-radius:5px; cursor:pointer;">Enregistrer</button>
+            <button onclick="closeModal()" style="flex:1; padding:10px; background:#333; color:white; border:none; border-radius:5px; cursor:pointer;">Annuler</button>
+        </div>
+    </div>
+</div>
+
+
+<script type="module">
+    import * as iptvParser from 'https://cdn.jsdelivr.net/npm/iptv-playlist-parser@0.15.2/+esm';
+
+    const video = document.getElementById('video');
+    const channelList = document.getElementById('channelList');
+    const searchInput = document.getElementById('search');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const loadMoreBtn = document.getElementById('loadMore');
+    const errorMessage = document.getElementById('errorMessage');
+    const loader = document.getElementById('loader');
+    const qualitySelect = document.getElementById('qualitySelect');
+    const favCountSpan = document.getElementById('favCount');
+    const sidebar = document.getElementById('sidebar');
+    const installBtn = document.getElementById('installBtn');
+
+    let sessionTimeout = null;
+    const INACTIVITY_DELAY = 10 * 60 * 1000; // 10 minutes en millisecondes
+
+    let allChannels = [];
+    let filteredChannels = [];
+    let displayedCount = 100;
+    let hls = null;
+    let isAuthorized = localStorage.getItem("freelink_private_access") === "true";
+    let userChannels = JSON.parse(localStorage.getItem('freelink_user_channels')) || [];
+    let wakeLock = null;
+    let favorites = JSON.parse(localStorage.getItem('freelink_favs')) || [];
+    
+    // Gestion du volume (Optimisée)
+    const rawVolume = localStorage.getItem('freelink_volume');
+    const savedVolume = rawVolume !== null ? parseFloat(rawVolume) : 0.5;
+    video.volume = isNaN(savedVolume) ? 0.5 : savedVolume;
+    
+    // --- 2. Fonction d'Initialisation ---
+async function init() {
+    try {
+        // État initial pour l'UI
+        allChannels = [];
+        filteredChannels = [];
+        displayChannels(); 
+
+        // Chargement Parallèle des sources
+        const [worldRes, clubRes] = await Promise.allSettled([
+            fetch(`https://iptv-org.github.io/iptv/index.m3u?t=${Date.now()}`).then(r => r.text()),
+            isAuthorized ? fetch('club_data.json').then(r => r.ok ? r.json() : []) : Promise.resolve([])
+        ]);
+
+        // Traitement de la playlist mondiale
+        let worldChannels = [];
+        if (worldRes.status === "fulfilled") {
+            try {
+                const playlist = iptvParser.parse(worldRes.value);
+                worldChannels = playlist.items;
+            } catch (e) { 
+                console.error("Erreur de parsing M3U"); 
+            }
+        }
+
+        // Traitement des données privées (Club)
+        let clubChannels = [];
+        if (clubRes.status === "fulfilled") {
+            clubChannels = clubRes.value.map(ch => ({ 
+                ...ch, 
+                private: true, 
+                group: ch.group || { title: "CLUB" } 
+            }));
+        }
+
+        // Fusion Unique : Priorité aux flux Club, puis mondiaux, puis utilisateurs
+        allChannels = [...clubChannels, ...worldChannels, ...userChannels];
+        
+        // Nettoyage des doublons par URL
+        allChannels = allChannels.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
+
+        // Mise à jour de l'interface globale
+        updateCategories();
+        updateFavCount();
+        setupPrivateUI();
+        
+        // Affichage initial
+        if (searchInput.value.trim() === "") {
+            // On ne montre le privé que si autorisé
+            filteredChannels = isAuthorized ? allChannels : allChannels.filter(ch => !ch.private);
+            displayedCount = 30;
+            displayChannels(false);
+        }
+
+        // Reprise automatique du dernier flux
+        handleAutoResume();
+
+    } catch (err) {
+        console.error("Erreur Init fatale:", err);
+        channelList.innerHTML = `<p style="color:red; padding:10px;">Erreur système : ${err.message}</p>`;
+    }
+}
+
+// Extraction de la logique de reprise pour la clarté
+function handleAutoResume() {
+    const lastUrl = localStorage.getItem('freelink_last_channel');
+    if (!lastUrl) return;
+
+    const lastIdx = allChannels.findIndex(ch => ch.url === lastUrl);
+    if (lastIdx > -1) {
+        const lastChannel = allChannels[lastIdx];
+        
+        // Vérification des droits d'accès
+        if (!lastChannel.private || isAuthorized) {
+            // Ajustement du nombre d'éléments affichés si la chaîne est loin
+            if (lastIdx >= displayedCount) {
+                displayedCount = lastIdx + 10;
+                displayChannels(false);
+            }
+
+            playStream(lastChannel);
+
+            // Focus et Scroll synchronisé
+            setTimeout(() => {
+                const activeEl = document.querySelector(`.channel[data-url="${CSS.escape(lastUrl)}"]`);
+                if (activeEl) {
+                    activeEl.classList.add('active');
+                    activeEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                }
+            }, 800);
+        }
+    }
+}
+
+
+function setupPrivateUI() {
+    const lockBtn = document.getElementById('lockBtn');
+    const addBtn = document.getElementById('addChannelBtn');
+
+    if (isAuthorized) {
+        lockBtn.innerHTML = "🔓 Section Privée";
+        lockBtn.style.color = "var(--primary-color)";
+        addBtn.style.display = "flex";
+    } else {
+        lockBtn.innerHTML = "🔒 Déverrouiller";
+        addBtn.style.display = "none";
+    }
+
+    lockBtn.onclick = async () => {
+    if (!isAuthorized) {
+        const code = prompt("Code d'accès :");
+        if (code === "2026") {
+            isAuthorized = true;
+            localStorage.setItem("freelink_private_access", "true");
+            
+            try {
+                const response = await fetch('club_data.json');
+                if (response.ok) {
+                    const resClub = await response.json();
+                    const clubWithFlags = resClub.map(ch => ({ 
+                        ...ch, 
+                        private: true, 
+                        group: ch.group || { title: "CLUB" } 
+                    }));
+                    
+                    // Fusion propre : Privés + Publics + Perso
+                    allChannels = [...clubWithFlags, ...allChannels.filter(c => !c.private), ...userChannels];
+                    // Nettoyage des doublons d'URL
+                    allChannels = allChannels.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
+                }
+            } catch (e) { console.warn("Erreur club_data"); }
+
+            setupPrivateUI(); 
+            // On affiche tout après le déverrouillage
+            filteredChannels = allChannels; 
+            displayChannels();
+        }
+    } else {
+        // --- LOGIQUE DE BASCULE OPTIMISÉE ---
+        const query = searchInput.value.toLowerCase().trim();
+        const isShowingOnlyPrivate = filteredChannels.every(ch => ch.private);
+
+        if (!isShowingOnlyPrivate) {
+            // Mode "Privé uniquement" : On filtre par 'private' ET par la recherche actuelle
+            filteredChannels = allChannels.filter(ch => 
+                ch.private && (ch.name.toLowerCase().includes(query) || (ch.group && ch.group.title.toLowerCase().includes(query)))
+            );
+            lockBtn.innerHTML = "👁️ Voir Tout"; // On propose de revenir au catalogue complet
+            lockBtn.style.color = "var(--accent-color)"; // Petit changement de couleur optionnel
+        } else {
+            // Mode "Tout le catalogue" : On respecte la recherche en cours s'il y en a une
+            filteredChannels = (query === "") 
+                ? allChannels 
+                : allChannels.filter(ch => ch.name.toLowerCase().includes(query));
+            
+            lockBtn.innerHTML = "🔓 Section Privée"; // On propose de re-filtrer sur le privé
+            lockBtn.style.color = "var(--primary-color)";
+        }
+        displayChannels();
+    }
+};
+
+    // --- GESTION DE LA MODALE (Accessible depuis le HTML) ---
+window.closeModal = () => {
+    const modal = document.getElementById('addChannelModal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.saveNewChannel = () => {
+    const nameInput = document.getElementById('newChannelName');
+    const urlInput = document.getElementById('newChannelUrl');
+    const name = nameInput.value.trim();
+    const url = urlInput.value.trim();
+
+    if (!name || !url) {
+        alert("Veuillez remplir tous les champs.");
+        return;
+    }
+
+    const newEntry = {
+        name: "👤 " + name,
+        url: url,
+        group: { title: "MES FLUX" },
+        tvg: { logo: "" },
+        private: true
+    };
+
+    userChannels.push(newEntry);
+    localStorage.setItem('freelink_user_channels', JSON.stringify(userChannels));
+    
+    // Insérer au début de la liste pour visibilité immédiate
+    allChannels.unshift(newEntry); 
+    filteredChannels = allChannels;
+    
+    nameInput.value = '';
+    urlInput.value = '';
+    window.closeModal();
+    
+    displayChannels();
+    updateCategories(); 
+};
+}
+
+    function updateCategories() {
+    const categories = [...new Set(allChannels.map(ch => ch.group.title))].sort();
+    const currentSelection = categoryFilter.value;
+    
+    categoryFilter.innerHTML = '<option value="all">Toutes les catégories</option>';
+    categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.innerText = cat || "Général";
+        categoryFilter.appendChild(opt);
+    });
+    
+    categoryFilter.value = currentSelection;
+}
+
+   // --- DANS LA FONCTION displayChannels (Focus intelligent) ---
+function displayChannels(isRefresh = false) {
+    const scrollPos = channelList.scrollTop;
+    
+    // 1. Gestion des états vides
+    if (filteredChannels.length === 0) {
+        if (allChannels.length === 0) {
+            channelList.innerHTML = `<div class="loader-text" style="text-align:center; padding:20px; color:var(--text-dim);">Chargement ...</div>`;
+        } else {
+            channelList.innerHTML = `<div class="empty-state">Aucune chaîne trouvée.</div>`;
+        }
+        updateLoadMoreButton();
+        return;
+    }
+
+    // 2. Nettoyage STRICT pour éviter les multiplications
+    // Si ce n'est pas un "Charger plus" (scroll infini), on vide TOUJOURS la liste
+    if (!isRefresh || showingFavorites) {
+        displayedCount = 30; // On repart sur un petit nombre pour la fluidité
+        channelList.innerHTML = ''; 
+    }
+    
+    // 3. Rendu des éléments
+    // On passe false à renderChunk pour qu'il ne fasse pas d'append interne si on vient de vider
+    renderChunk(filteredChannels.slice(0, displayedCount), isRefresh);
+    
+    // 4. Restauration de la position si nécessaire
+    if (isRefresh && !showingFavorites) {
+        channelList.scrollTop = scrollPos;
+    }
+
+    // 5. Gestion du focus pour la navigation clavier/TV
+    if (window.navigationMode === 'keyboard') {
+        setTimeout(() => {
+            const firstChannel = channelList.querySelector('.channel');
+            if (firstChannel && document.activeElement !== searchInput) {
+                firstChannel.focus();
+            }
+        }, 100);
+    }
+    
+    updateLoadMoreButton();
+}
+
+  function renderChunk(chunk, append = false) {
+    const fragment = document.createDocumentFragment();
+    const lastChannelUrl = localStorage.getItem('freelink_last_channel');
+
+    // 1. Sécurité Anti-Doublons : Si on ne fait pas d'append, on vide TOUJOURS
+    if (!append) {
+        channelList.innerHTML = '';
+    }
+
+    chunk.forEach(ch => {
+        // 2. Vérification d'existence : Ne pas ajouter si l'URL est déjà présente dans le DOM
+        // Cela empêche la multiplication si displayChannels(true) est appelé par erreur
+        if (append && channelList.querySelector(`.channel[data-url="${CSS.escape(ch.url)}"]`)) {
+            return; 
+        }
+
+        const cleanName = ch.name.replace(/\[.*?\]|\(.*?\)/g, '').trim();
+        const isFav = favorites.some(f => f.url === ch.url);
+        const isPrivate = ch.private === true || 
+                          (ch.group && (ch.group.title === "CLUB" || ch.group.title === "MES FLUX"));
+        
+        const div = document.createElement('div');
+        div.className = 'channel';
+        div.tabIndex = 0;
+        div.setAttribute('data-url', ch.url); // Crucial pour le querySelector et CSS.escape
+
+        if (lastChannelUrl === ch.url) { div.classList.add('active'); }
+        
+        const deleteBtnHtml = (ch.group && ch.group.title === "MES FLUX") 
+            ? `<span class="delete-channel" title="Supprimer">🗑️</span>` 
+            : '';
+
+        div.innerHTML = `
+            <div class="logo-container" style="width:40px; height:30px; flex-shrink:0; background:#222; border-radius:4px; overflow:hidden;">
+                <img src="${ch.tvg.logo || ''}" 
+                     loading="lazy" 
+                     decoding="async"
+                     alt=""
+                     style="width:100%; height:100%; object-fit:cover;"
+                     onerror="this.style.opacity='0'"> 
+            </div>
+            <span style="flex-grow:1; margin-left:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                ${isPrivate ? '🔒 ' : ''}${cleanName}
+            </span>
+            <div class="actions" style="display: flex; align-items: center;">
+                ${deleteBtnHtml}
+                <span class="fav-btn ${isFav ? 'active' : ''}">★</span>
+            </div>
+        `;
+
+        // Gestion du clic sur la ligne (Lecture)
+        div.addEventListener('click', (e) => {
+            if (e.target.closest('.fav-btn') || e.target.closest('.delete-channel')) return;
+            
+            const currentActive = channelList.querySelector('.channel.active');
+            if (currentActive) currentActive.classList.remove('active');
+            div.classList.add('active');
+            playStream(ch);
+        });
+
+        // Gestion du bouton Supprimer
+        const btnDel = div.querySelector('.delete-channel');
+        if(btnDel) { 
+            btnDel.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if(confirm("Supprimer cette chaîne ?")) {
+                    userChannels = userChannels.filter(c => c.url !== ch.url);
+                    localStorage.setItem('freelink_user_channels', JSON.stringify(userChannels));
+                    allChannels = allChannels.filter(c => c.url !== ch.url);
+                    filteredChannels = filteredChannels.filter(c => c.url !== ch.url);
+                    displayChannels(false); // On force un refresh propre (pas d'append)
+                }
+            });
+        }
+
+        // Gestion du bouton Favoris
+        const favBtn = div.querySelector('.fav-btn');
+        favBtn.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            toggleFavorite(ch); // On retire l'argument 'div' s'il n'est plus utilisé par ta fonction
+        });
+
+        fragment.appendChild(div);
+    });
+
+    channelList.appendChild(fragment);
+}
+
+// 1. Gestion de l'état du mode de navigation
+window.navigationMode = 'touch'; 
+
+document.addEventListener('touchstart', () => {
+    window.navigationMode = 'touch';
+}, {passive: true});
+
+// 2. Gestionnaire de navigation unique (Clavier / Télécommande TV)
+document.addEventListener('keydown', (e) => {
+    // Détection immédiate du mode clavier
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(e.key)) {
+        window.navigationMode = 'keyboard';
+    }
+
+    // A. Sortie de la barre de recherche vers la liste
+    if (e.key === 'ArrowDown' && document.activeElement === searchInput) {
+        const first = channelList.querySelector('.channel');
+        if (first) {
+            e.preventDefault();
+            first.focus();
+        }
+        return;
+    }
+
+    // B. Navigation cyclique dans la liste des chaînes
+    if (['ArrowUp', 'ArrowDown'].includes(e.key)) {
+        const channels = Array.from(channelList.querySelectorAll('.channel'));
+        if (channels.length === 0) return;
+
+        const currentIndex = channels.indexOf(document.activeElement);
+
+        // Cas 1 : On entre dans la liste (si rien n'a le focus)
+        if (currentIndex === -1) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                channels[0].focus();
+            }
+            return;
+        }
+
+        // Cas 2 : On navigue déjà dans la liste
+        e.preventDefault(); // Bloque le scroll par défaut du navigateur
+
+        let nextIndex;
+        if (e.key === 'ArrowDown') {
+            // Vers le bas : suivant, ou retour au premier (boucle)
+            nextIndex = (currentIndex + 1 < channels.length) ? currentIndex + 1 : 0;
+        } else {
+            // Vers le haut : précédent, ou retour au dernier (boucle)
+            nextIndex = (currentIndex - 1 >= 0) ? currentIndex - 1 : channels.length - 1;
+        }
+
+        const target = channels[nextIndex];
+        if (target) {
+            target.focus();
+            // scrollIntoView 'nearest' évite les sauts d'écran brusques
+            target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+    }
+});
+
+
+    function toggleFavorite(channel) {
+    const currentUrl = channel.url;
+    
+    // 1. Identification STRICTE pour éviter les doublons dans le tableau
+    // On utilise l'URL comme clé unique absolue
+    const index = favorites.findIndex(f => f.url === currentUrl);
+    const isAdding = index === -1;
+    
+    if (isAdding) {
+        // On ajoute une copie propre pour éviter de lier des références mémoires
+        favorites.push({ ...channel });
+    } else {
+        // On retire toutes les instances possibles de cette URL (sécurité anti-doublon)
+        favorites = favorites.filter(f => f.url !== currentUrl);
+    }
+    
+    // Sauvegarde et mise à jour du compteur
+    localStorage.setItem('freelink_favs', JSON.stringify(favorites));
+    updateFavCount();
+
+    // 2. Mise à jour de l'affichage
+    if (showingFavorites) {
+        // Force la synchronisation des données filtrées
+        filteredChannels = [...favorites];
+        
+        // IMPORTANT : S'assurer que displayChannels() vide bien le innerHTML 
+        // avant de reconstruire la liste des favoris.
+        displayChannels(); 
+        
+        // Gestion du focus pour la navigation fluide
+        setTimeout(() => {
+            const firstChannel = channelList.querySelector('.channel');
+            if (firstChannel) firstChannel.focus();
+        }, 50);
+    } else {
+        // Mode catalogue : On met à jour l'élément sans toucher au reste du DOM
+        const targetEl = document.querySelector(`.channel[data-url="${CSS.escape(currentUrl)}"]`);
+        if (targetEl) {
+            const favBtn = targetEl.querySelector('.fav-btn');
+            if (favBtn) {
+                // On synchronise l'état visuel avec la réalité du tableau
+                favBtn.classList.toggle('active', isAdding);
+            }
+        }
+    }
+}
+
+    function updateFavCount() {
+    const countSpan = document.getElementById('favCount');
+    if (countSpan) {
+        countSpan.innerText = favorites.length;
+    }
+    // Si on est en mode favoris et qu'il n'y en a plus, on force l'affichage du message vide
+    if (showingFavorites && favorites.length === 0) {
+        displayChannels();
+    }
+}
+
+function updateLoadMoreButton() {
+    // Le bouton ne s'affiche QUE s'il y a des résultats ET qu'il en reste à charger
+    const hasResults = filteredChannels.length > 0;
+    const hasMoreToLoad = displayedCount < filteredChannels.length;
+
+    loadMoreBtn.style.display = (hasResults && hasMoreToLoad) ? 'block' : 'none';
+}
+    function playStream(channel) {
+    const url = typeof channel === 'string' ? channel : channel.url;
+    const name = typeof channel === 'string' ? "Flux sauvegardé" : channel.name;
+    const logo = typeof channel === 'string' ? "" : (channel.tvg.logo || '');
+    const isMP4 = url.toLowerCase().split(/[?#]/)[0].endsWith('.mp4');
+
+    localStorage.setItem('freelink_last_channel', url);
+    errorMessage.style.display = 'none';
+    loader.style.display = 'block';
+    qualitySelect.style.display = 'none';
+
+    document.getElementById('currentTitle').innerText = name.replace(/\[.*?\]|\(.*?\)/g, '').trim();
+    document.getElementById('currentLogo').src = logo;
+    document.getElementById('currentChannelInfo').style.display = 'flex';
+
+    // Nettoyage de l'instance HLS précédente
+    if (hls) {
+        hls.stopLoad();
+        hls.detachMedia();
+        hls.destroy();
+        hls = null;
+    }
+    video.pause();
+    video.src = "";
+    video.load();
+
+    // --- FONCTION DE LECTURE SÉCURISÉE ---
+    const startPlayback = () => {
+    video.play().catch(error => {
+        console.warn("Lecture bloquée. Tentative en sourdine...");
+        video.muted = true;
+        video.play();
+        // Optionnel : Afficher un petit message "Cliquez pour activer le son"
+        errorMessage.innerText = "Sourdine activée, Touchez l'écran pour le son.";
+        errorMessage.style.display = 'block';
+        setTimeout(() => errorMessage.style.display = 'none', 5000);
+    });
+};
+
+    if (isMP4) {
+        video.src = url;
+        startPlayback();
+    } else if (Hls.isSupported()) {
+        // À ajouter dans la configuration de Hls
+hls = new Hls({
+    maxBufferLength: 30,
+    manifestLoadingMaxRetry: 3,
+    levelLoadingMaxRetry: 3
+});
+        hls.loadSource(url);
+
+        // Dans playStream, après hls.loadSource(url);
+const hlsTimeout = setTimeout(() => {
+    if (loader.style.display === 'block') {
+        loader.style.display = 'none';
+        errorMessage.innerText = "flux instable";
+        errorMessage.style.display = 'block';
+    }
+}, 15000); // 15 secondes max
+
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            clearTimeout(hlsTimeout);
+            loader.style.display = 'none';
+            if (hls.levels.length > 1) {
+                qualitySelect.style.display = 'block';
+                qualitySelect.innerHTML = '<option value="-1">Qualité : Auto</option>' +
+                    hls.levels.map((l, i) => `<option value="${i}">${l.height}p</option>`).join('');
+            }
+            startPlayback(); // Appel de la lecture sécurisée
+            toggleWakeLock(true);
+        });
+        
+        // Gestion des erreurs HLS pour éviter que le loader reste indéfiniment
+        hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+                loader.style.display = 'none';
+                console.error("Erreur HLS fatale");
+            }
+        });
+    }
+
+    // Gestionnaires d'état de la vidéo
+    video.onwaiting = () => loader.style.display = 'block';
+    video.onplaying = () => {
+        loader.style.display = 'none';
+        if (video.readyState >= 3) {
+            toggleWakeLock(true);
+        }
+    };
+    video.onpause = () => toggleWakeLock(false);
+}
+
+    async function toggleWakeLock(isActive) {
+        if (!('wakeLock' in navigator)) return;
+        try {
+            if (isActive && !wakeLock) {
+                wakeLock = await navigator.wakeLock.request('screen');
+            } else if (!isActive && wakeLock) {
+                await wakeLock.release();
+                wakeLock = null;
+            }
+        } catch (err) { console.warn("WakeLock Error"); }
+    }
+
+    document.addEventListener('visibilitychange', async () => {
+    if (wakeLock !== null && document.visibilityState === 'visible') {
+        if (!video.paused) wakeLock = await navigator.wakeLock.request('screen');
+    }
+});
+
+
+    // 1. GESTION DU BOUTON CHARGER PLUS (Corrigé)
+    loadMoreBtn.onclick = () => {
+        const nextBatch = filteredChannels.slice(displayedCount, displayedCount + 100);
+        renderChunk(nextBatch, true); 
+        displayedCount += 100;
+        updateLoadMoreButton();
+    };
+
+    // 2. QUALITÉ VIDÉO
+    qualitySelect.onchange = () => { 
+        if(hls) hls.currentLevel = parseInt(qualitySelect.value); 
+    };
+
+    // 3. RECHERCHE ET FILTRES
+    let searchTimeout;
+    searchInput.oninput = () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+           
+            const query = searchInput.value.toLowerCase().trim();
+            const basePool = showingFavorites ? favorites : allChannels;
+            
+
+            filteredChannels = (query === "") 
+                ? basePool 
+                : basePool.filter(ch => 
+                    ch.name.toLowerCase().includes(query) || 
+                    (ch.group && ch.group.title && ch.group.title.toLowerCase().includes(query))
+                );
+            displayChannels();
+        }, 300);
+    };
+
+    categoryFilter.onchange = () => {
+        resetFavBtn();
+        const cat = categoryFilter.value;
+        filteredChannels = (cat === 'all') ? allChannels : allChannels.filter(ch => ch.group.title === cat);
+        displayChannels();
+    };
+
+    // 4. GESTION DES FAVORIS
+    let showingFavorites = false;
+
+    document.getElementById('favQuickAccess').onclick = function() {
+    showingFavorites = !showingFavorites;
+    
+    // On récupère le span du compteur pour ne pas le perdre
+    const countSpan = document.getElementById('favCount');
+    
+    if (showingFavorites) {
+        filteredChannels = favorites;
+        this.classList.add('active');
+        // On change le texte avant le span sans toucher au HTML du span
+        this.innerHTML = `⭐ Voir Tout (<span id="favCount">${favorites.length}</span>)`;
+    } else {
+        filteredChannels = allChannels;
+        this.classList.remove('active');
+        this.innerHTML = `⭐ Favoris (<span id="favCount">${favorites.length}</span>)`;
+    }
+    
+    displayChannels();
+};
+
+    function resetFavBtn() {
+        if (showingFavorites) {
+            showingFavorites = false;
+            const btn = document.getElementById('favQuickAccess');
+            btn.classList.remove('active');
+            btn.innerHTML = `⭐ Favoris (<span id="favCount">${favorites.length}</span>)`;
+        }
+    }
+
+    // 5. NAVIGATION ET SYSTÈME
+    window.addEventListener('popstate', (e) => {
+        if (sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+        }
+    });
+
+    document.getElementById('menuToggle').onclick = () => { 
+        sidebar.classList.toggle('open');
+        if(sidebar.classList.contains('open')) {
+            history.pushState({menu: 'open'}, null, "");
+        }
+    };
+
+    video.onvolumechange = () => {
+        if (!video.muted && video.volume > 0) {
+            localStorage.setItem('freelink_volume', video.volume);
+        }
+        if (video.muted && video.volume > 0) video.muted = false;
+    };
+
+    // 6. INSTALLATION PWA
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = 'block';
+    });
+
+    installBtn.onclick = async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') installBtn.style.display = 'none';
+            deferredPrompt = null;
+        }
+    };
+
+// --- GESTION DU BOUTON ACTUALISER ---
+const refreshBtn = document.getElementById('refreshBtn');
+
+refreshBtn.onclick = () => {
+    // 1. Animation visuelle (rotation)
+    refreshBtn.style.transition = "transform 0.5s ease";
+    refreshBtn.style.transform = "rotate(360deg)";
+    
+    // 2. Réinitialisation de l'affichage
+    channelList.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-dim);">Actualisation en cours...</p>';
+    
+    // 3. Relance du chargement complet
+    init();
+
+    // 4. Remise à zéro de l'icône après l'animation
+    setTimeout(() => {
+        refreshBtn.style.transform = "rotate(0deg)";
+        refreshBtn.style.transition = "none";
+    }, 500);
+};
+
+const addBtn = document.getElementById('addChannelBtn');
+const modal = document.getElementById('addChannelModal');
+
+// Ouvrir la modale
+addBtn.addEventListener('click', () => {
+    modal.style.display = 'flex';
+});
+
+function lockPrivateSection() {
+    isAuthorized = false;
+    localStorage.removeItem("freelink_private_access");
+    
+    // Si la chaîne actuelle est privée, on coupe le flux
+    const lastUrl = localStorage.getItem('freelink_last_channel');
+    const currentChannel = allChannels.find(ch => ch.url === lastUrl);
+    if (currentChannel && currentChannel.private) {
+        video.pause();
+        video.src = "";
+        document.getElementById('currentChannelInfo').style.display = 'none';
+    }
+
+    filteredChannels = allChannels.filter(ch => !ch.private); 
+    setupPrivateUI(); 
+    displayChannels();
+}
+
+function resetSessionTimer() {
+    if (!isAuthorized) return; // Inutile si déjà verrouillé
+
+    clearTimeout(sessionTimeout);
+    sessionTimeout = setTimeout(() => {
+        // Optionnel : ne pas verrouiller si une vidéo est en cours de lecture
+        if (video.paused) {
+            lockPrivateSection();
+        } else {
+            // Si une vidéo joue, on repousse le délai
+            resetSessionTimer(); 
+        }
+    }, INACTIVITY_DELAY);
+}
+
+// Écouteurs d'événements pour détecter l'activité humaine
+['mousedown', 'mousemove', 'keypress', 'touchstart'].forEach(name => {
+    document.addEventListener(name, resetSessionTimer, {passive: true});
+});
+
+// Dans l'écouteur de scroll du channelList
+channelList.addEventListener('scroll', () => {
+    if (channelList.scrollTop + channelList.clientHeight >= channelList.scrollHeight - 100) {
+        if (displayedCount < filteredChannels.length) {
+            const lastFocused = document.activeElement; // On garde en mémoire l'élément actif
+            loadMoreBtn.click();
+            if (lastFocused && lastFocused.classList.contains('channel')) {
+                lastFocused.focus({ preventScroll: true }); // On maintient le focus
+            }
+        }
+    }
+});
+
+    // Lancement
+    init();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    console.log("PWA : Service Worker enregistré avec succès");
+
+    reg.addEventListener('updatefound', () => {
+      const installingWorker = reg.installing;
+      installingWorker.onstatechange = () => {
+        if (installingWorker.state === 'installed') {
+          if (navigator.serviceWorker.controller) {
+            // Une mise à jour est prête, mais on ne force pas le reload 
+            // pour ne pas interrompre l'expérience utilisateur ou l'installation.
+            console.log("Nouvelle version téléchargée. Elle sera active au prochain démarrage.");
+          } else {
+            // Contenu mis en cache pour la première fois
+            console.log("L'application est maintenant prête pour une utilisation hors-ligne.");
+          }
+        }
+      };
+    });
+  }).catch(error => {
+    console.error("Erreur lors de l'enregistrement du Service Worker :", error);
+  });
+}
+</script>
+</body>
+</html>

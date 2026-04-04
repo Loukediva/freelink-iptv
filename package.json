@@ -1,0 +1,40 @@
+{
+  "name": "freelink",
+  "version": "1.0.0",
+  "description": "Lecteur IPTV Freelink",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Freelink",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor-community/electron": "^5.0.1",
+    "@capacitor/android": "^8.1.0",
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0",
+    "hls.js": "^1.6.15",
+    "iptv-playlist-parser": "^0.15.2"
+  },
+  "devDependencies": {
+    "electron": "^40.8.5",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.freelink.iptv",
+    "productName": "Freelink IPTV",
+    "win": {
+      "icon": "freelink_icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "directories": {
+      "output": "dist"
+    }
+  }
+}
