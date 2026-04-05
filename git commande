@@ -1,6 +1,6 @@
 
 git add .
-git commit -m "Mise à jour Freelink version 1.1.1: Ajout de la fusion optimisée des chaînes (priorité : Club > Adulte > Suisse > Monde > Utilisateur), amélioration de la gestion du volume lors de la réactivation du son, et mise à jour du service worker pour une meilleure gestion des caches."
+git commit -m "Mise à jour Freelink version 1.1.2 : Ajout de la gestion des groupes de chaînes, amélioration de l'interface utilisateur, et correction de bugs mineurs."
 git push origin master
 
 

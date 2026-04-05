@@ -341,7 +341,6 @@ video::-webkit-media-controls-panel {
 }
 
 #search {
-    justify-content: flex-start !important;
     text-align: left;
 }
 
@@ -477,7 +476,7 @@ html, body {
                 style="position: absolute; right: 20px; top: 25px; background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1.2rem;">
             ↻
         </button>
-        <img src="freelink_icon.ico" alt="Logo" class="brand-logo">
+        <img src="favicon.ico" alt="Logo" class="brand-logo">
         <h2 style="margin: 12px 0 0; font-size: 1.2rem; color: var(--primary-color); letter-spacing: 3px; font-weight: 800; text-transform: uppercase;">
             Freelink
         </h2>
@@ -488,11 +487,11 @@ html, body {
     </button>
 
     <div id="privateActionsContainer">
-    <button id="lockBtn" onclick="maFonctionDeDeverrouillage()">
+    <button id="lockBtn">
         🔒 <span id="lockText">Déverrouiller</span>
     </button>
 
-    <button id="addChannelBtn" onclick="document.getElementById('addChannelModal').style.display='flex'" style="display: none;">
+    <button id="addChannelBtn" style="display: none;">
         <span class="plus-icon">+</span> Flux
     </button>
 </div>
@@ -760,6 +759,7 @@ allChannels = combined.filter(ch => {
             div.className = 'channel';
             div.tabIndex = 0;
             div.setAttribute('data-url', ch.url);
+            div.setAttribute('data-group', ch.group.title);
 
             if (lastChannelUrl === ch.url) div.classList.add('active');
             
