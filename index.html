@@ -187,7 +187,17 @@
             position: relative; 
         }
 
-        video { width: 100%; height: auto; max-height: 100vh; }
+video { width: 100%; height: auto; max-height: 100vh; border-radius: 8px; background: #000; }
+
+video::-internal-media-controls-download-button {
+    display:none;
+}
+video::-webkit-media-controls-enclosure {
+    overflow:hidden;
+}
+video::-webkit-media-controls-panel {
+    width: calc(100% + 30px); 
+}
 
         #loader { 
             display: none; position: absolute; border: 4px solid #f3f3f3; 
@@ -269,6 +279,7 @@
             margin: 0;
             pointer-events: auto;
         }
+        
 
         #refreshBtn:hover { color: var(--primary-color); transform: scale(1.1); }
         .spinning { animation: spin 1s linear infinite; }
@@ -574,6 +585,15 @@ html, body {
     const savedVolume = rawVolume !== null ? parseFloat(rawVolume) : 0.5;
     video.volume = isNaN(savedVolume) ? 0.5 : savedVolume;
 
+    // Permet d'appliquer le changement de qualité choisi par l'utilisateur
+qualitySelect.onchange = () => {
+    if (hls) {
+        // hls.currentLevel définit la qualité ( -1 pour Auto )
+        hls.currentLevel = parseInt(qualitySelect.value);
+        console.log("Qualité modifiée sur :", qualitySelect.value);
+    }
+};
+
 
     let deferredPrompt; // Stocke l'événement d'installation
 
@@ -606,58 +626,97 @@ window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
 });
 
-    // --- 2. INITIALISATION ---
     async function init() {
-        try {
-            allChannels = [];
-            filteredChannels = [];
-            displayChannels(); 
+    try {
+        allChannels = [];
+        filteredChannels = [];
+        displayChannels(); 
 
-            // Chargement Parallèle (IPTV-org + Club local)
-            const [worldRes, clubRes] = await Promise.allSettled([
-                fetch(`https://iptv-org.github.io/iptv/index.m3u?t=${Date.now()}`).then(r => r.text()),
-                isAuthorized ? fetch('club_data.json').then(r => r.ok ? r.json() : []) : Promise.resolve([])
-            ]);
+        // 1. Chargement Parallèle (Monde + SUISSE + Club local)
+        const [worldRes, swissRes, clubRes, adultRes] = await Promise.allSettled([
+            fetch(`https://iptv-org.github.io/iptv/index.m3u?t=${Date.now()}`).then(r => r.text()),
+            fetch(`https://iptv-ch.github.io/netplus.m3u8?t=${Date.now()}`).then(r => r.text()),
+            isAuthorized ? fetch('club_data.json').then(r => r.ok ? r.json() : []).catch(() => []) : Promise.resolve([]),
+            isAuthorized ? fetch('adult.m3u').then(r => r.ok ? r.text() : "") : Promise.resolve("")
+        ]);
 
-            let worldChannels = [];
-            if (worldRes.status === "fulfilled") {
-                try {
-                    const playlist = iptvParser.parse(worldRes.value);
-                    worldChannels = playlist.items;
-                } catch (e) { console.error("Erreur de parsing M3U"); }
-            }
-
-            let clubChannels = [];
-            if (clubRes.status === "fulfilled") {
-                clubChannels = clubRes.value.map(ch => ({ 
-                    ...ch, 
-                    private: true, 
-                    group: ch.group || { title: "CLUB" } 
-                }));
-            }
-
-            // Fusion Unique (Club > Monde > Utilisateur)
-            allChannels = [...clubChannels, ...worldChannels, ...userChannels];
-            allChannels = allChannels.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
-
-            updateCategories();
-            updateFavCount();
-            setupPrivateUI();
-            
-            // Premier affichage
-            if (searchInput.value.trim() === "") {
-                filteredChannels = isAuthorized ? allChannels : allChannels.filter(ch => !ch.private);
-                displayedCount = 30;
-                displayChannels(false);
-            }
-
-            handleAutoResume();
-
-        } catch (err) {
-            console.error("Erreur Init fatale:", err);
-            channelList.innerHTML = `<p style="color:red; padding:10px;">Erreur : ${err.message}</p>`;
+        // 2. Traitement Monde
+        let worldChannels = [];
+        if (worldRes.status === "fulfilled") {
+            try {
+                const playlist = iptvParser.parse(worldRes.value);
+                worldChannels = playlist.items;
+            } catch (e) { console.error("Erreur parsing M3U Monde"); }
         }
+
+        // 3. Traitement Suisse (Nouveau)
+        let swissChannels = [];
+        if (swissRes.status === "fulfilled") {
+            try {
+                const playlist = iptvParser.parse(swissRes.value);
+                swissChannels = playlist.items.map(ch => ({
+                    ...ch,
+                    group: { title: "SUISSE 🇨🇭" } // On force la catégorie pour le filtre
+                }));
+            } catch (e) { console.error("Erreur parsing M3U Suisse"); }
+        }
+
+        // 4. Traitement Club
+        let clubChannels = [];
+        if (clubRes.status === "fulfilled" && Array.isArray(clubRes.value)) {
+            clubChannels = clubRes.value.map(ch => ({ 
+                ...ch, 
+                private: true, 
+                group: ch.group || { title: "CLUB" } 
+            }));
+        }
+
+        // 4b. Traitement des chaînes Adultes (Depuis ton fichier .m3u)
+        // Dans init(), remplacez le bloc 4b par cette version plus robuste :
+let adultChannels = [];
+if (isAuthorized && adultRes.status === "fulfilled" && adultRes.value && adultRes.value.includes("#EXTM3U")) {
+    try {
+        const playlist = iptvParser.parse(adultRes.value);
+        adultChannels = playlist.items.map(ch => ({
+            ...ch,
+            private: true,
+            // Sécurité si le groupe est absent dans le M3U
+            group: (ch.group && ch.group.title) ? ch.group : { title: "ADULTE 🔥" }
+        }));
+    } catch (e) { 
+        console.error("Crash évité lors du parsing Adulte", e); 
     }
+}
+
+        // 5. Fusion Optimisée (Ordre de priorité : Club > Adulte > Suisse > Monde > Utilisateur)
+const seenUrls = new Set();
+const combined = [...clubChannels, ...adultChannels, ...swissChannels, ...worldChannels, ...userChannels];
+
+allChannels = combined.filter(ch => {
+    if (seenUrls.has(ch.url)) return false;
+    seenUrls.add(ch.url);
+    return true;
+});
+        
+        // 6. Mise à jour de l'UI
+        updateCategories();
+        updateFavCount();
+        setupPrivateUI();
+        
+        // 7. Premier affichage
+        if (searchInput.value.trim() === "") {
+            filteredChannels = isAuthorized ? allChannels : allChannels.filter(ch => !ch.private);
+            displayedCount = 30;
+            displayChannels(false);
+        }
+
+        handleAutoResume();
+
+    } catch (err) {
+        console.error("Erreur Init fatale:", err);
+        channelList.innerHTML = `<p style="color:red; padding:10px;">Erreur : ${err.message}</p>`;
+    }
+}
 
     // --- 3. AFFICHAGE ET RENDU ---
     function displayChannels(isRefresh = false) {
@@ -707,7 +766,7 @@ window.addEventListener('appinstalled', () => {
 
             div.innerHTML = `
                 <div class="logo-container" style="width:40px; height:30px; flex-shrink:0; background:#222; border-radius:4px; overflow:hidden;">
-                    <img src="${ch.tvg.logo || ''}" loading="lazy" decoding="async" alt="" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.opacity='0'"> 
+                    <img src="${ch.tvg.logo || ''}" loading="lazy" decoding="async" alt="" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.opacity='0'">
                 </div>
                 <span style="flex-grow:1; margin-left:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                     ${isPrivate ? '🔒 ' : ''}${cleanName}
@@ -803,10 +862,16 @@ window.addEventListener('appinstalled', () => {
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
                 loader.style.display = 'none';
                 if (hls.levels.length > 1) {
-                    qualitySelect.style.display = 'none';
-                    qualitySelect.innerHTML = '<option value="-1">Qualité : Auto</option>' +
-                        hls.levels.map((l, i) => `<option value="${i}">${l.height}p</option>`).join('');
-                }
+    qualitySelect.style.display = 'block';
+    qualitySelect.innerHTML = '<option value="-1">Qualité : Auto</option>' +
+        hls.levels.map((l, i) => {
+            // Si l.height existe on l'affiche, sinon on affiche l'index ou le bitrate
+            const label = l.height ? `${l.height}p` : `Source ${i+1}`;
+            return `<option value="${i}">${label}</option>`;
+        }).join('');
+} else {
+    qualitySelect.style.display = 'none'; // Très important : cacher si un seul flux
+}
                 startPlayback();
                 toggleWakeLock(true);
             });
@@ -814,41 +879,65 @@ window.addEventListener('appinstalled', () => {
         }
     }
 
-    // --- 5. LOGIQUE PRIVÉE & MODALE ---
-    function setupPrivateUI() {
-        const lockBtn = document.getElementById('lockBtn');
-        const addBtnNav = document.getElementById('addChannelBtn');
-        if (isAuthorized) {
-            lockBtn.innerHTML = "🔓 Section Privée";
-            lockBtn.style.color = "var(--primary-color)";
-            if(addBtnNav) addBtnNav.style.display = "flex";
-        } else {
-            lockBtn.innerHTML = "🔒 Déverrouiller";
-            if(addBtnNav) addBtnNav.style.display = "none";
-        }
-
-        lockBtn.onclick = async () => {
-            if (!isAuthorized) {
-                const code = prompt("Code d'accès :");
-                if (code === "2026") {
-                    isAuthorized = true;
-                    localStorage.setItem("freelink_private_access", "true");
-                    init(); // Recharge tout proprement
-                }
-            } else {
-                const query = searchInput.value.toLowerCase().trim();
-                const isOnlyPrivate = filteredChannels.every(ch => ch.private);
-                if (!isOnlyPrivate) {
-                    filteredChannels = allChannels.filter(ch => ch.private && ch.name.toLowerCase().includes(query));
-                    lockBtn.innerHTML = "👁️ Voir Tout";
-                } else {
-                    filteredChannels = (query === "") ? allChannels : allChannels.filter(ch => ch.name.toLowerCase().includes(query));
-                    lockBtn.innerHTML = "🔓 Section Privée";
-                }
-                displayChannels();
+    // --- 5. LOGIQUE PRIVÉE & MODALE (VERSION AVEC DÉCONNEXION) ---
+function setupPrivateUI() {
+    const lockBtn = document.getElementById('lockBtn');
+    const addBtnNav = document.getElementById('addChannelBtn');
+    
+    if (isAuthorized) {
+        lockBtn.innerHTML = "🔓 Section Privée";
+        lockBtn.style.color = "var(--primary-color)";
+        if(addBtnNav) addBtnNav.style.display = "flex";
+        
+        // AJOUT : Clic droit (Context Menu) pour déconnexion rapide
+        lockBtn.oncontextmenu = (e) => {
+            e.preventDefault();
+            if(confirm("Fermer la session privée ?")) {
+                lockPrivateSection();
             }
         };
+    } else {
+        lockBtn.innerHTML = "🔒 Déverrouiller";
+        lockBtn.style.color = "";
+        if(addBtnNav) addBtnNav.style.display = "none";
+        lockBtn.oncontextmenu = null;
     }
+
+    lockBtn.onclick = async (e) => {
+    if (e.button === 2) return; 
+
+    if (!isAuthorized) {
+        const code = prompt("Code d'accès :");
+        if (code === "2026") {
+            // Affiche le loader pendant le traitement lourd
+            loader.style.display = 'block';
+            channelList.innerHTML = '<div class="loader-text" style="text-align:center; padding:20px;">Déchiffrement de la section privée...</div>';
+
+            isAuthorized = true;
+            localStorage.setItem("freelink_private_access", "true");
+            resetSessionTimer();
+            
+            await init(); 
+            
+            filteredChannels = allChannels;
+            displayChannels();
+            loader.style.display = 'none';
+        }
+    } else {
+        // Logique de bascule d'affichage
+        const query = searchInput.value.toLowerCase().trim();
+        const isOnlyPrivate = filteredChannels.every(ch => ch.private);
+        if (!isOnlyPrivate) {
+            filteredChannels = allChannels.filter(ch => ch.private && ch.name.toLowerCase().includes(query));
+            lockBtn.innerHTML = "👁️ Voir Tout";
+        } else {
+            filteredChannels = (query === "") ? allChannels : allChannels.filter(ch => ch.name.toLowerCase().includes(query));
+            lockBtn.innerHTML = "🔓 Section Privée";
+        }
+        displayChannels();
+    }
+};
+}
 
     window.saveNewChannel = () => {
         const name = document.getElementById('newChannelName').value.trim();
@@ -936,15 +1025,24 @@ window.closeModal = closeModal;
 
     // Export des fonctions pour le HTML global
     function updateCategories() {
-        const categories = [...new Set(allChannels.map(ch => ch.group.title))].sort();
-        categoryFilter.innerHTML = '<option value="all">Toutes les catégories</option>';
-        categories.forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = cat;
-            opt.innerText = cat || "Général";
-            categoryFilter.appendChild(opt);
-        });
-    }
+    const categorySet = new Set();
+    
+    // On ne boucle qu'une fois sur allChannels
+    allChannels.forEach(ch => {
+        const title = (ch.group && ch.group.title) ? ch.group.title : "Général";
+        categorySet.add(title);
+    });
+
+    const sortedCategories = Array.from(categorySet).sort();
+    
+    categoryFilter.innerHTML = '<option value="all">Toutes les catégories</option>';
+    sortedCategories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.innerText = cat;
+        categoryFilter.appendChild(opt);
+    });
+}
 
     function updateFavCount() {
         const countSpan = document.getElementById('favCount');
@@ -1020,40 +1118,41 @@ categoryFilter.onchange = () => {
     displayChannels();
 };
 
-// Gestion de la session (Verrouillage automatique)
+// --- SYSTÈME DE VERROUILLAGE AUTOMATIQUE ---
+
 function lockPrivateSection() {
     isAuthorized = false;
     localStorage.removeItem("freelink_private_access");
     
-    // Si on regarde une chaîne privée, on l'arrête
     const lastUrl = localStorage.getItem('freelink_last_channel');
     const currentChannel = allChannels.find(ch => ch.url === lastUrl);
+    
     if (currentChannel && currentChannel.private) {
+        if (hls) { hls.destroy(); hls = null; }
         video.pause();
         video.src = "";
-        document.getElementById('currentChannelInfo').style.display = 'none';
+        const info = document.getElementById('currentChannelInfo');
+        if(info) info.style.display = 'none';
+        console.log("🔒 Session expirée : Accès privé révoqué.");
     }
 
     filteredChannels = allChannels.filter(ch => !ch.private); 
+    updateCategories();
     setupPrivateUI(); 
-    displayChannels();
+    displayChannels();    
 }
 
 function resetSessionTimer() {
     if (!isAuthorized) return; 
     clearTimeout(sessionTimeout);
     sessionTimeout = setTimeout(() => {
-        // On ne verrouille que si la vidéo est en pause (pour ne pas couper un film)
-        if (video.paused) {
-            lockPrivateSection();
-        } else {
-            resetSessionTimer(); 
-        }
+        // Verrouillage automatique après 10 minutes d'inactivité
+        lockPrivateSection();
     }, INACTIVITY_DELAY);
 }
 
-// Écouteurs d'activité pour le timer
-['mousedown', 'mousemove', 'keypress', 'touchstart'].forEach(name => {
+// Écouteurs d'activité
+['mousedown', 'mousemove', 'keypress', 'touchstart', 'scroll'].forEach(name => {
     document.addEventListener(name, resetSessionTimer, {passive: true});
 });
 
@@ -1077,12 +1176,11 @@ document.getElementById('menuToggle').onclick = () => {
 function unmuteVideo() {
     if (video.muted) {
         video.muted = false;
-        // On restaure le volume sauvegardé s'il existe
         const vol = localStorage.getItem('freelink_volume');
-        video.volume = vol ? parseFloat(vol) : 0.5;
+        const parsedVol = parseFloat(vol);
+        video.volume = !isNaN(parsedVol) ? parsedVol : 0.5;
         
         errorMessage.style.display = 'none';
-        console.log("Son réactivé");
     }
 }
 

@@ -22,7 +22,7 @@
 
         { "name": "Hardcore", "url": "https://cdn-main.lolokoko.tv/HUSTLER.stream/chunks.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/41Ej2io.png" }, "private": true },
         { "name": "Private TV HD", "url": "https://cdn-main.lolokoko.tv/Private.stream/playlist.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/89E8Ev2.png" }, "private": true },
-        { "name": "Redlight HD", "url": "https://cdn-main.lolokoko.tv/REDLIGHT.stream/chunks.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/g0QF5IG.png" }, "private": true },
+        { "name": "Redlight HD", "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/g0QF5IG.png" }, "private": true },
         { "name": "Blue Hustler", "url": "http://193.33.240.8:8080/hustler_hd/index.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/G1YaX0Q.png" }, "private": true },
         { "name": "Miami TV", "url": "https://59ec5453559f0.streamlock.net/miamitv/smil:miamitv/playlist.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/esK4CBZ.png" }, "private": true },
         { "name": "XXX Cartoons", "url": "http://144.76.58.245:2307/cartoon/index.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/kNYY78z.png" }, "private": true },

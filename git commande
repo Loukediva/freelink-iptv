@@ -1,6 +1,9 @@
 
 git add .
-git commit -m "Mise à jour Freelink version 1.0.9 : Ajout de la chaîne Pornstar dans la section ZONE PRIVÉE, avec une icône personnalisée. Correction de quelques liens et amélioration de la structure du fichier club_data.json."
+git commit -m "Mise à jour Freelink version 1.1.0 :
+- Ajout de la fusion optimisée des chaînes (priorité : Club > Adulte > Suisse > Monde > Utilisateur)
+- Correction du bug de volume lors de la réactivation du son
+- Mise à jour du nom de cache dans le service worker pour forcer le rafraîchissement des ressources"
 git push origin main
 
 
