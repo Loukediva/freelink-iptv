@@ -633,9 +633,11 @@ window.addEventListener('appinstalled', () => {
         displayChannels(); 
 
         // 1. Chargement Parallèle (Monde + SUISSE + Club local)
+        const swissUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://iptv-ch.github.io/netplus.m3u8')}`;
+
         const [worldRes, swissRes, clubRes, adultRes] = await Promise.allSettled([
             fetch(`https://iptv-org.github.io/iptv/index.m3u?t=${Date.now()}`).then(r => r.text()),
-            fetch(`https://iptv-ch.github.io/netplus.m3u8?t=${Date.now()}`).then(r => r.text()),
+            fetch(swissUrl).then(r => r.text()),
             isAuthorized ? fetch('club_data.json').then(r => r.ok ? r.json() : []).catch(() => []) : Promise.resolve([]),
             isAuthorized ? fetch('adult.m3u').then(r => r.ok ? r.text() : "") : Promise.resolve("")
         ]);
@@ -744,6 +746,7 @@ allChannels = combined.filter(ch => {
     function renderChunk(chunk, append = false) {
         const fragment = document.createDocumentFragment();
         const lastChannelUrl = localStorage.getItem('freelink_last_channel');
+        const DEFAULT_LOGO = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSIzMCIgdmlld0JveD0iMCAwIDQwIDMwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZpbGw9IiNhYWEiIGZvbnQtc2l6ZT0iMTIiIGR5PSIuM2VtIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UVjwvdGV4dD48L3N2Zz4=";
 
         if (!append) channelList.innerHTML = '';
 
@@ -763,18 +766,22 @@ allChannels = combined.filter(ch => {
             
             const deleteBtnHtml = (ch.group && ch.group.title === "MES FLUX") 
                 ? `<span class="delete-channel" title="Supprimer">🗑️</span>` : '';
+            
+            const logoSrc = (ch.tvg && ch.tvg.logo && ch.tvg.logo.trim() !== "") ? ch.tvg.logo : DEFAULT_LOGO;
 
             div.innerHTML = `
-                <div class="logo-container" style="width:40px; height:30px; flex-shrink:0; background:#222; border-radius:4px; overflow:hidden;">
-                    <img src="${ch.tvg.logo || ''}" loading="lazy" decoding="async" alt="" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.opacity='0'">
-                </div>
-                <span style="flex-grow:1; margin-left:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                    ${isPrivate ? '🔒 ' : ''}${cleanName}
-                </span>
-                <div class="actions" style="display: flex; align-items: center;">
-                    ${deleteBtnHtml}
-                    <span class="fav-btn ${isFav ? 'active' : ''}">★</span>
-                </div>
+        <div class="logo-container" style="width:40px; height:30px; flex-shrink:0; background:#222; border-radius:4px; overflow:hidden;">
+            <img src="${logoSrc}" loading="lazy" decoding="async" alt="" 
+                 style="width:100%; height:100%; object-fit:cover;" 
+                 onerror="this.src='${DEFAULT_LOGO}'">
+        </div>
+        <span style="flex-grow:1; margin-left:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            ${isPrivate ? '🔒 ' : ''}${cleanName}
+        </span>
+        <div class="actions" style="display: flex; align-items: center;">
+            ${deleteBtnHtml}
+            <span class="fav-btn ${isFav ? 'active' : ''}">★</span>
+        </div>
             `;
 
             // --- 1. ÉCOUTEUR PRINCIPAL (LANCER LA CHAINE) ---
