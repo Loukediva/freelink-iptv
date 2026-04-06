@@ -9,14 +9,20 @@ const ASSETS = [
   './web-app-manifest-512x512.png',
   './apple-touch-icon.png',
   './favicon-32x32.png',
-  './club_data.json',
+  './sw.js',
   'https://cdn.jsdelivr.net/npm/hls.js@1.0.0'
 ];
 
-// 1. Installation
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) => {
+      // On tente d'abord les fichiers vitaux
+      return cache.addAll(ASSETS).catch(err => {
+        console.warn("Certains fichiers de ASSETS sont manquants, mais l'installation continue.", err);
+        // Optionnel : tu peux boucler sur ASSETS et cache.add() individuellement 
+        // pour voir exactement lequel bloque en console.
+      });
+    })
   );
   self.skipWaiting();
 });
@@ -38,20 +44,21 @@ self.addEventListener('activate', (e) => {
   return self.clients.claim();
 });
 
-// 3. Récupération
+// 3. Récupération - Correction Suisse
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
 
   const url = new URL(e.request.url);
 
-  // A. EXCLUSION : Flux vidéo et playlists (FORCER le réseau)
+  // A. EXCLUSION : Flux vidéo et playlists (FORCER le réseau direct)
   if (
-    url.pathname.match(/\.(ts|mp4|m3u8)$/i) || // Ajout de 'i' pour l'insensibilité à la casse
+    url.pathname.match(/\.(ts|mp4|m3u8|m3u)$/i) || 
     url.hostname.includes('iptv-org') ||
-    url.hostname.includes('iptv-ch') // Ajout de ta source suisse
+    url.hostname.includes('jsdelivr.net') || 
+    url.hostname.includes('allorigins') || // Au cas où il reste des traces
+    url.hostname.includes('iptv-ch')
   ) {
-    // On ne fait rien d'autre que de laisser passer la requête vers internet
-    return; 
+    return; // Le navigateur gère la requête normalement sans passer par le cache
   }
 
   // B. LOGOS : Cache-First

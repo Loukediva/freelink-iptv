@@ -1,19 +1,27 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Freelink">
+    
     <title>Freelink IPTV</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.0.0"></script>
     
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    
     <link rel="manifest" href="./site.webmanifest">
     <meta name="theme-color" content="#00c4cc">
     <meta name="referrer" content="no-referrer">
+    
     <style>
         :root {
             --primary-color: #00c4cc;
@@ -512,7 +520,7 @@ html, body {
 
 <div id="playerContainer">
     <div id="currentChannelInfo">
-        <img id="currentLogo" src="" onerror="this.src='https://via.placeholder.com/40x30?text=TV'" style="width: 45px; height: 35px; object-fit: contain; margin-right: 15px; background: #000; border-radius: 4px;">
+        <img id="currentLogo" src="" style="width: 45px; height: 35px; object-fit: contain; margin-right: 15px; background: #000; border-radius: 4px;">
         <div>
             <div style="font-size: 0.7rem; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 2px;">En cours de lecture</div>
             <h3 id="currentTitle" style="margin: 0; font-size: 1.1rem; color: white; font-weight: 600;">Nom de la chaîne</h3>
@@ -563,6 +571,7 @@ html, body {
     const sidebar = document.getElementById('sidebar');
     const installBtn = document.getElementById('installBtn');
     const modal = document.getElementById('addChannelModal');
+            const DEFAULT_LOGO = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSIzMCIgdmlld0JveD0iMCAwIDQwIDMwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZpbGw9IiNhYWEiIGZvbnQtc2l6ZT0iMTIiIGR5PSIuM2VtIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UVjwvdGV4dD48L3N2Zz4=";
 
     let allChannels = [];
     let filteredChannels = [];
@@ -631,8 +640,7 @@ window.addEventListener('appinstalled', () => {
         displayChannels(); 
 
         // 1. Chargement Parallèle (Monde + SUISSE + Club local)
-        const swissUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://iptv-ch.github.io/netplus.m3u8')}`;
-
+        const swissUrl = `https://raw.githubusercontent.com/iptv-ch/iptv-ch.github.io/master/netplus.m3u8`;
         const [worldRes, swissRes, clubRes, adultRes] = await Promise.allSettled([
             fetch(`https://iptv-org.github.io/iptv/index.m3u?t=${Date.now()}`).then(r => r.text()),
             fetch(swissUrl).then(r => r.text()),
@@ -744,7 +752,7 @@ allChannels = combined.filter(ch => {
     function renderChunk(chunk, append = false) {
         const fragment = document.createDocumentFragment();
         const lastChannelUrl = localStorage.getItem('freelink_last_channel');
-        const DEFAULT_LOGO = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSIzMCIgdmlld0JveD0iMCAwIDQwIDMwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZpbGw9IiNhYWEiIGZvbnQtc2l6ZT0iMTIiIGR5PSIuM2VtIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UVjwvdGV4dD48L3N2Zz4=";
+
 
         if (!append) channelList.innerHTML = '';
 
@@ -837,7 +845,15 @@ allChannels = combined.filter(ch => {
         qualitySelect.style.display = 'none';
 
         document.getElementById('currentTitle').innerText = name.replace(/\[.*?\]|\(.*?\)/g, '').trim();
-        document.getElementById('currentLogo').src = logo;
+        const logoImg = document.getElementById('currentLogo');
+// Si le logo de la chaîne existe, on l'utilise, sinon on met le logo par défaut immédiatement
+logoImg.src = logo || DEFAULT_LOGO;
+
+// Sécurité si le lien du logo de la chaîne est mort
+logoImg.onerror = function() {
+    this.src = DEFAULT_LOGO;
+    this.onerror = null;
+};
         document.getElementById('currentChannelInfo').style.display = 'flex';
 
         if (hls) { hls.destroy(); hls = null; }
@@ -1036,7 +1052,7 @@ window.closeModal = closeModal;
     // On ne boucle qu'une fois sur allChannels
     allChannels.forEach(ch => {
         const title = (ch.group && ch.group.title) ? ch.group.title : "Général";
-        categorySet.add(title);
+        if(title.length > 1) categorySet.add(title);
     });
 
     const sortedCategories = Array.from(categorySet).sort();
