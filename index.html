@@ -17,6 +17,7 @@
     <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
     
     <link rel="manifest" href="./site.webmanifest">
     <meta name="theme-color" content="#00c4cc">
@@ -640,13 +641,15 @@ window.addEventListener('appinstalled', () => {
         displayChannels(); 
 
         // 1. Chargement Parallèle (Monde + SUISSE + Club local)
-        const swissUrl = `https://raw.githubusercontent.com/iptv-ch/iptv-ch.github.io/master/netplus.m3u8`;
-        const [worldRes, swissRes, clubRes, adultRes] = await Promise.allSettled([
-            fetch(`https://iptv-org.github.io/iptv/index.m3u?t=${Date.now()}`).then(r => r.text()),
-            fetch(swissUrl).then(r => r.text()),
-            isAuthorized ? fetch('club_data.json').then(r => r.ok ? r.json() : []).catch(() => []) : Promise.resolve([]),
-            isAuthorized ? fetch('adult.m3u').then(r => r.ok ? r.text() : "") : Promise.resolve("")
-        ]);
+        // On remplace swissUrl par arabUrl
+const arabUrl = 'https://iptv-org.github.io/iptv/languages/ara.m3u';
+
+const [worldRes, arabRes, clubRes, adultRes] = await Promise.allSettled([
+    fetch(`https://iptv-org.github.io/iptv/index.m3u?t=${Date.now()}`).then(r => r.text()),
+    fetch(arabUrl).then(r => r.text()), // On charge les flux arabes
+    isAuthorized ? fetch('club_data.json').then(r => r.ok ? r.json() : []).catch(() => []) : Promise.resolve([]),
+    isAuthorized ? fetch('adult.m3u').then(r => r.ok ? r.text() : "") : Promise.resolve("")
+]);
 
         // 2. Traitement Monde
         let worldChannels = [];
@@ -657,17 +660,17 @@ window.addEventListener('appinstalled', () => {
             } catch (e) { console.error("Erreur parsing M3U Monde"); }
         }
 
-        // 3. Traitement Suisse (Nouveau)
-        let swissChannels = [];
-        if (swissRes.status === "fulfilled") {
-            try {
-                const playlist = iptvParser.parse(swissRes.value);
-                swissChannels = playlist.items.map(ch => ({
-                    ...ch,
-                    group: { title: "SUISSE 🇨🇭" } // On force la catégorie pour le filtre
-                }));
-            } catch (e) { console.error("Erreur parsing M3U Suisse"); }
-        }
+        // 3. Traitement Arabe (Plus stable que la Suisse)
+let arabChannels = [];
+if (arabRes.status === "fulfilled") {
+    try {
+        const playlist = iptvParser.parse(arabRes.value);
+        arabChannels = playlist.items.map(ch => ({
+            ...ch,
+            group: { title: "ARABE ☪️" } // Catégorie dédiée
+        }));
+    } catch (e) { console.error("Erreur parsing M3U Arabe"); }
+}
 
         // 4. Traitement Club
         let clubChannels = [];
@@ -698,7 +701,8 @@ if (isAuthorized && adultRes.status === "fulfilled" && adultRes.value && adultRe
 
         // 5. Fusion Optimisée (Ordre de priorité : Club > Adulte > Suisse > Monde > Utilisateur)
 const seenUrls = new Set();
-const combined = [...clubChannels, ...adultChannels, ...swissChannels, ...worldChannels, ...userChannels];
+// Fusion mise à jour : on remplace swissChannels par arabChannels
+const combined = [...clubChannels, ...adultChannels, ...arabChannels, ...worldChannels, ...userChannels];
 
 allChannels = combined.filter(ch => {
     if (seenUrls.has(ch.url)) return false;
@@ -1099,7 +1103,7 @@ window.closeModal = closeModal;
             setTimeout(() => {
                 const el = document.querySelector(`.channel[data-url="${CSS.escape(lastUrl)}"]`);
                 if (el) el.scrollIntoView({ block: 'center' });
-            }, 800);
+            }, 1200);
         }
     }
 

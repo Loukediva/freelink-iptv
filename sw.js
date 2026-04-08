@@ -1,4 +1,4 @@
-const CACHE_NAME = 'freelink-v1.1.2';
+const CACHE_NAME = 'freelink-v1.1.3';
 const LOGO_CACHE = 'freelink-logos-v1';
 
 const ASSETS = [
@@ -8,7 +8,7 @@ const ASSETS = [
   './web-app-manifest-192x192.png',
   './web-app-manifest-512x512.png',
   './apple-touch-icon.png',
-  './favicon-32x32.png',
+  './favicon.svg',
   './sw.js',
   'https://cdn.jsdelivr.net/npm/hls.js@1.0.0'
 ];
@@ -50,17 +50,15 @@ self.addEventListener('fetch', (e) => {
 
   const url = new URL(e.request.url);
 
-  // A. EXCLUSION : Flux vidéo et playlists (FORCER le réseau direct)
-  if (
+  // // A. EXCLUSION : Flux vidéo uniquement
+if (
     url.pathname.match(/\.(ts|mp4|m3u8|m3u)$/i) || 
-    url.hostname.includes('iptv-org') ||
-    url.hostname.includes('jsdelivr.net') || 
-    url.hostname.includes('allorigins') || // Au cas où il reste des traces
-    url.hostname.includes('iptv-ch')
-  ) {
-    return; // Le navigateur gère la requête normalement sans passer par le cache
-  }
-
+    url.hostname.includes('iptv-ch') ||
+    url.hostname.includes('iptv-org')
+) {
+    // On laisse filer la requête vidéo sans AUCUNE interception
+    return; 
+}
   // B. LOGOS : Cache-First
   if (e.request.destination === 'image' || url.pathname.match(/\.(png|jpg|jpeg|gif|webp|svg|ico)$/i)) {
     e.respondWith(
