@@ -640,16 +640,13 @@ window.addEventListener('appinstalled', () => {
         filteredChannels = [];
         displayChannels(); 
 
-        // 1. Chargement Parallèle (Monde + SUISSE + Club local)
-        // On remplace swissUrl par arabUrl
-const arabUrl = 'https://iptv-org.github.io/iptv/languages/ara.m3u';
-
-const [worldRes, arabRes, clubRes, adultRes] = await Promise.allSettled([
-    fetch(`https://iptv-org.github.io/iptv/index.m3u?t=${Date.now()}`).then(r => r.text()),
-    fetch(arabUrl).then(r => r.text()), // On charge les flux arabes
-    isAuthorized ? fetch('club_data.json').then(r => r.ok ? r.json() : []).catch(() => []) : Promise.resolve([]),
-    isAuthorized ? fetch('adult.m3u').then(r => r.ok ? r.text() : "") : Promise.resolve("")
-]);
+        // 1. Chargement Parallèle (Simplifié : Monde + Club + Adulte)
+        const [worldRes, clubRes, adultRes] = await Promise.allSettled([
+            fetch(`https://iptv-org.github.io/iptv/index.m3u?t=${Date.now()}`).then(r => r.text()),
+            // On charge club_data.json systématiquement si autorisé
+            isAuthorized ? fetch('club_data.json').then(r => r.ok ? r.json() : []).catch(() => []) : Promise.resolve([]),
+            isAuthorized ? fetch('adult.m3u').then(r => r.ok ? r.text() : "") : Promise.resolve("")
+        ]);
 
         // 2. Traitement Monde
         let worldChannels = [];
@@ -660,19 +657,7 @@ const [worldRes, arabRes, clubRes, adultRes] = await Promise.allSettled([
             } catch (e) { console.error("Erreur parsing M3U Monde"); }
         }
 
-        // 3. Traitement Arabe (Plus stable que la Suisse)
-let arabChannels = [];
-if (arabRes.status === "fulfilled") {
-    try {
-        const playlist = iptvParser.parse(arabRes.value);
-        arabChannels = playlist.items.map(ch => ({
-            ...ch,
-            group: { title: "ARABE ☪️" } // Catégorie dédiée
-        }));
-    } catch (e) { console.error("Erreur parsing M3U Arabe"); }
-}
-
-        // 4. Traitement Club
+        // 3. Traitement Club (Inclut désormais vos chaînes Arabes personnalisées)
         let clubChannels = [];
         if (clubRes.status === "fulfilled" && Array.isArray(clubRes.value)) {
             clubChannels = clubRes.value.map(ch => ({ 
@@ -682,33 +667,29 @@ if (arabRes.status === "fulfilled") {
             }));
         }
 
-        // 4b. Traitement des chaînes Adultes (Depuis ton fichier .m3u)
-        // Dans init(), remplacez le bloc 4b par cette version plus robuste :
-let adultChannels = [];
-if (isAuthorized && adultRes.status === "fulfilled" && adultRes.value && adultRes.value.includes("#EXTM3U")) {
-    try {
-        const playlist = iptvParser.parse(adultRes.value);
-        adultChannels = playlist.items.map(ch => ({
-            ...ch,
-            private: true,
-            // Sécurité si le groupe est absent dans le M3U
-            group: (ch.group && ch.group.title) ? ch.group : { title: "ADULTE 🔥" }
-        }));
-    } catch (e) { 
-        console.error("Crash évité lors du parsing Adulte", e); 
-    }
-}
+        // 4. Traitement des chaînes Adultes
+        let adultChannels = [];
+        if (isAuthorized && adultRes.status === "fulfilled" && adultRes.value && adultRes.value.includes("#EXTM3U")) {
+            try {
+                const playlist = iptvParser.parse(adultRes.value);
+                adultChannels = playlist.items.map(ch => ({
+                    ...ch,
+                    private: true,
+                    group: (ch.group && ch.group.title) ? ch.group : { title: "ADULTE 🔥" }
+                }));
+            } catch (e) { console.error("Crash Adulte évité"); }
+        }
 
-        // 5. Fusion Optimisée (Ordre de priorité : Club > Adulte > Suisse > Monde > Utilisateur)
-const seenUrls = new Set();
-// Fusion mise à jour : on remplace swissChannels par arabChannels
-const combined = [...clubChannels, ...adultChannels, ...arabChannels, ...worldChannels, ...userChannels];
+        // 5. Fusion Optimisée
+        const seenUrls = new Set();
+        // Plus besoin de arabChannels ici
+        const combined = [...clubChannels, ...adultChannels, ...worldChannels, ...userChannels];
 
-allChannels = combined.filter(ch => {
-    if (seenUrls.has(ch.url)) return false;
-    seenUrls.add(ch.url);
-    return true;
-});
+        allChannels = combined.filter(ch => {
+            if (seenUrls.has(ch.url)) return false;
+            seenUrls.add(ch.url);
+            return true;
+        });
         
         // 6. Mise à jour de l'UI
         updateCategories();

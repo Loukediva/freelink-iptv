@@ -1,10 +1,6 @@
 
 git add .
-git commit -m "Mise à jour Freelink version 1.1.3 :
-- Remplacement du flux suisse par un flux arabe pour une meilleure diversité
-- Ajout du favicon.svg pour une meilleure compatibilité
-- Optimisation de la fusion des listes de chaînes
-- Amélioration du scroll vers la dernière chaîne jouée"
+git commit -m "Mise à jour Freelink version 1.1.3 : Ajout du favicon.svg et suppression du favicon-32x32.png dans le cache, mise à jour du nom de cache pour refléter la nouvelle version."
 git push -u origin main
 
 
