@@ -1,4 +1,4 @@
-const CACHE_NAME = 'freelink-v1.1.3';
+const CACHE_NAME = 'freelink-v1.1.4';
 const LOGO_CACHE = 'freelink-logos-v1';
 
 const ASSETS = [

@@ -1,34 +1,61 @@
 [
-        { "name": "⚽ DIRECTION DU CLUB", "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", "group": { "title": "01. DIRECTION DU CLUB" }, "tvg": { "logo": "freelink_icon.ico" } },
-        { "name": "🐂 RED BULL TV", "url": "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", "group": { "title": "02. CHAÎNES SPORTIVES" }, "tvg": { "logo": "https://upload.wikimedia.org/wikipedia/fr/f/f9/Red_Bull_logo.svg" } },
-       { "name": "SportsGrid", "url": "https://amg00315-sportsgrid-firetv.amagi.tv/playlist.m3u8", "group": { "title": "04. SPORTS" }, "tvg": { "logo": "https://via.placeholder.com/40x30?text=Grid" } },
-        { "name": "Billiards TV", "url": "https://newidco-billiardstv-1-eu.xiaomi.wurl.tv/playlist.m3u8", "group": { "title": "04. SPORTS" }, "tvg": { "logo": "https://via.placeholder.com/40x30?text=Pool" } },
-        { "name": "New KPOP", "url": "https://newidco-newkid-1-eu.xiaomi.wurl.tv/playlist.m3u8", "group": { "title": "07. MUSIQUE" }, "tvg": { "logo": "https://via.placeholder.com/40x30?text=KPOP" } },
-        { "name": "Travel XP", "url": "https://travelxp-travelxp-1-eu.xiaomi.wurl.tv/playlist.m3u8", "group": { "title": "09. LIFESTYLE" }, "tvg": { "logo": "https://via.placeholder.com/40x30?text=Travel" } },
-       
+  { "name": "⚽ DIRECTION DU CLUB", "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", "group": { "title": "01. DIRECTION DU CLUB" }, "tvg": { "logo": "freelink_icon.ico" } },
+  { "name": "🐂 RED BULL TV", "url": "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", "group": { "title": "02. CHAÎNES SPORTIVES" }, "tvg": { "logo": "https://upload.wikimedia.org/wikipedia/fr/f/f9/Red_Bull_logo.svg" } },
+  { "name": "SportsGrid", "url": "https://amg00315-sportsgrid-firetv.amagi.tv/playlist.m3u8", "group": { "title": "04. SPORTS" }, "tvg": { "logo": "https://via.placeholder.com/40x30?text=Grid" } },
+  { "name": "Billiards TV", "url": "https://newidco-billiardstv-1-eu.xiaomi.wurl.tv/playlist.m3u8", "group": { "title": "04. SPORTS" }, "tvg": { "logo": "https://via.placeholder.com/40x30?text=Pool" } },
+  { "name": "New KPOP", "url": "https://newidco-newkid-1-eu.xiaomi.wurl.tv/playlist.m3u8", "group": { "title": "07. MUSIQUE" }, "tvg": { "logo": "https://via.placeholder.com/40x30?text=KPOP" } },
+  { "name": "Travel XP", "url": "https://travelxp-travelxp-1-eu.xiaomi.wurl.tv/playlist.m3u8", "group": { "title": "09. LIFESTYLE" }, "tvg": { "logo": "https://via.placeholder.com/40x30?text=Travel" } },
 
-        { "name": "Anal", "url": "https://cdn.adultiptv.net/anal.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
-        { "name": "Asian", "url": "https://cdn.adultiptv.net/asian.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
-        { "name": "Big Ass", "url": "https://cdn.adultiptv.net/bigass.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
-        { "name": "Woman", "url": "https://live.redtraffic.net/woman.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
-        { "name": "Threesome", "url": "https://cdn.adultiptv.net/threesome.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
-        { "name": "Compilation", "url": "https://cdn.adultiptv.net/compilation.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
-        { "name": "Gangbang", "url": "https://cdn.adultiptv.net/gangbang.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
-        { "name": "Pornstar", "url": "http://live.redtraffic.xyz/pornstar.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/41Ej2io.png" }, "private": true },
+  { "name": "RTS 1 HD", "url": "https://viamotionhsi.netplus.ch/live/eds/rts1hd/browser-HLS8/rts1hd.m3u8", "group": { "title": "03. SUISSE" }, "tvg": { "id": "RTS1.ch", "logo": "https://picserve.netplus.ch/channels/rts1hd.png" } },
+  { "name": "RTS 2 HD", "url": "https://viamotionhsi.netplus.ch/live/eds/rts2hd/browser-HLS8/rts2hd.m3u8", "group": { "title": "03. SUISSE" }, "tvg": { "id": "RTS2.ch", "logo": "https://picserve.netplus.ch/channels/rts2hd.png" } },
+  { "name": "Canal9 FHD", "url": "https://viamotionhsi.netplus.ch/live/eds/canal9/browser-HLS8/canal9.m3u8", "group": { "title": "03. SUISSE" }, "tvg": { "id": "canal9.ch", "logo": "https://picserve.netplus.ch/channels/canal9.png" } },
+  { "name": "SRF 1 HD", "url": "https://viamotionhsi.netplus.ch/live/eds/srf1hd/browser-HLS8/srf1hd.m3u8", "group": { "title": "03. SUISSE" }, "tvg": { "id": "SRF1.ch", "logo": "https://picserve.netplus.ch/channels/srf1.png" } },
+  { "name": "RSI La 1 HD", "url": "https://viamotionhsi.netplus.ch/live/eds/rsila1hd/browser-HLS8/rsila1hd.m3u8", "group": { "title": "03. SUISSE" }, "tvg": { "id": "RSILa1.ch", "logo": "https://picserve.netplus.ch/channels/rsila1.png" } },
+ 
+  { "name": "TF1 CH HD", "url": "https://viamotionhsi.netplus.ch/live/eds/tf1hd/browser-HLS8/tf1hd.m3u8", "group": { "title": "04. FRANCE" }, "tvg": { "id": "TF1.fr", "logo": "https://picserve.netplus.ch/channels/tf1hd.png" } },
+  { "name": "France 2 HD", "url": "https://viamotionhsi.netplus.ch/live/eds/france2hd/browser-HLS8/france2hd.m3u8", "group": { "title": "04. FRANCE" }, "tvg": { "id": "France2.fr", "logo": "https://picserve.netplus.ch/channels/france2hd.png" } },
+  { "name": "M6 CH HD", "url": "https://viamotionhsi.netplus.ch/live/eds/m6hd/browser-HLS8/m6hd.m3u8", "group": { "title": "04. FRANCE" }, "tvg": { "id": "m6.fr", "logo": "https://picserve.netplus.ch/channels/m6hd.png" } },
+  { "name": "W9 HD", "url": "https://viamotionhsi.netplus.ch/live/eds/w9/browser-HLS8/w9.m3u8", "group": { "title": "04. FRANCE" }, "tvg": { "id": "w9.fr", "logo": "https://picserve.netplus.ch/channels/w9.png" } },
+  { "name": "Arte F HD", "url": "https://viamotionhsi.netplus.ch/live/eds/artehd/browser-HLS8/artehd.m3u8", "group": { "title": "04. FRANCE" }, "tvg": { "id": "arte.fr", "logo": "https://picserve.netplus.ch/channels/artehd.png" } },
 
+  { "name": "La chaine L'EQUIPE", "url": "https://viamotionhsi.netplus.ch/live/eds/lequipe21/browser-HLS8/lequipe21.m3u8", "group": { "title": "05. SPORTS & DOCS" }, "tvg": { "id": "lequipe.fr", "logo": "https://picserve.netplus.ch/channels/lequipe21.png" } },
+  { "name": "TREK HD", "url": "https://viamotionhsi.netplus.ch/live/eds/escales/browser-HLS8/escales.m3u8", "group": { "title": "05. SPORTS & DOCS" }, "tvg": { "id": "escales.fr", "logo": "https://picserve.netplus.ch/channels/escales.png" } },
+  { "name": "PLANETE+ HD", "url": "https://viamotionhsi.netplus.ch/live/eds/planeteplus/browser-HLS8/planeteplus.m3u8", "group": { "title": "05. SPORTS & DOCS" }, "tvg": { "id": "planeteplus.fr", "logo": "https://picserve.netplus.ch/channels/planeteplus.png" } },
+  { "name": "RMC DECOUVERTE", "url": "https://viamotionhsi.netplus.ch/live/eds/rmcdecouverte/browser-HLS8/rmcdecouverte.m3u8", "group": { "title": "05. SPORTS & DOCS" }, "tvg": { "id": "rmcdecouverte.fr", "logo": "https://picserve.netplus.ch/channels/rmcdecouverte.png" } },
 
+  { "name": "BBC NEWS HD", "url": "https://viamotionhsi.netplus.ch/live/eds/bbcworld/browser-HLS8/bbcworld.m3u8", "group": { "title": "06. NEWS" }, "tvg": { "id": "bbcworld.uk", "logo": "https://picserve.netplus.ch/channels/bbcworld.png" } },
+  { "name": "CNN EUROPE HD", "url": "https://viamotionhsi.netplus.ch/live/eds/cnn/browser-HLS8/cnn.m3u8", "group": { "title": "06. NEWS" }, "tvg": { "id": "cnn.uk", "logo": "https://picserve.netplus.ch/channels/cnn.png" } },
+  { "name": "BFM TV HD", "url": "https://viamotionhsi.netplus.ch/live/eds/bfmtv/browser-HLS8/bfmtv.m3u8", "group": { "title": "06. NEWS" }, "tvg": { "id": "bfmtv.fr", "logo": "https://picserve.netplus.ch/channels/bfmtv.png" } },
 
+  { "name": "Rai 1 HD", "url": "https://viamotionhsi.netplus.ch/live/eds/rai1/browser-HLS8/rai1.m3u8", "group": { "title": "07. ITALIA" }, "tvg": { "id": "Rai1.it", "logo": "https://picserve.netplus.ch/channels/rai1.png" } },
+  { "name": "Italia1 HD", "url": "https://viamotionhsi.netplus.ch/live/eds/italia1/browser-HLS8/italia1.m3u8", "group": { "title": "07. ITALIA" }, "tvg": { "id": "italia1.it", "logo": "https://picserve.netplus.ch/channels/italia1.png" } },
 
+  { "name": "ARD Das Erste", "url": "https://viamotionhsi.netplus.ch/live/eds/daserstehd/browser-HLS8/daserstehd.m3u8", "group": { "title": "08. DEUTSCH" }, "tvg": { "id": "daserstehd.de", "logo": "https://picserve.netplus.ch/channels/daserstehd.png" } },
+  { "name": "ZDF HD", "url": "https://viamotionhsi.netplus.ch/live/eds/zdfhd/browser-HLS8/zdfhd.m3u8", "group": { "title": "08. DEUTSCH" }, "tvg": { "id": "zdf.de", "logo": "https://picserve.netplus.ch/channels/zdf.png" } },
 
-        { "name": "Hardcore", "url": "https://cdn-main.lolokoko.tv/HUSTLER.stream/chunks.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/41Ej2io.png" }, "private": true },
-        { "name": "Private TV HD", "url": "https://cdn-main.lolokoko.tv/Private.stream/playlist.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/89E8Ev2.png" }, "private": true },
-        { "name": "Redlight HD", "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/g0QF5IG.png" }, "private": true },
-        { "name": "Blue Hustler", "url": "http://193.33.240.8:8080/hustler_hd/index.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/G1YaX0Q.png" }, "private": true },
-        { "name": "Miami TV", "url": "https://59ec5453559f0.streamlock.net/miamitv/smil:miamitv/playlist.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/esK4CBZ.png" }, "private": true },
-        { "name": "XXX Cartoons", "url": "http://144.76.58.245:2307/cartoon/index.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/kNYY78z.png" }, "private": true },
-        { "name": "Tokyo Hot 01", "url": "https://video1.rhsj520.com/nyrm3/2011225/DR/n0011/index.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "" }, "private": true }
-        
-    ]
+  { "name": "BVN", "url": "https://viamotionhsi.netplus.ch/live/eds/bvn/browser-HLS8/bvn.m3u8", "group": { "title": "10. INTERNATIONAL" }, "tvg": { "id": "bvn.nl", "logo": "https://picserve.netplus.ch/channels/bvn.png" } },
+  { "name": "RTK1 SAT HD", "url": "https://gjirafa-video-live.gjirafa.net/gjvideo-livestream/rtk-sat/tracks-v4a1/mono.ts.m3u8", "group": { "title": "10. INTERNATIONAL" }, "tvg": { "id": "rtk1.al", "logo": "https://picserve.netplus.ch/channels/rtk1.png" } },
+  { "name": "PTC CBET HD", "url": "https://viamotionhsi.netplus.ch/live/eds/rtssat/browser-HLS8/rtssat.m3u8", "group": { "title": "10. INTERNATIONAL" }, "tvg": { "id": "ptccbet.rs", "logo": "https://picserve.netplus.ch/channels/rtssat.png" } },
+  { "name": "MNE HD", "url": "https://viamotionhsi.netplus.ch/live/eds/rtcg/browser-HLS8/rtcg.m3u8", "group": { "title": "10. INTERNATIONAL" }, "tvg": { "id": "mne.me", "logo": "https://picserve.netplus.ch/channels/rtcg.png" } },
+  { "name": "TRT TURK HD", "url": "https://viamotionhsi.netplus.ch/live/eds/trtturk/browser-HLS8/trtturk.m3u8", "group": { "title": "10. INTERNATIONAL" }, "tvg": { "id": "trtturk.tr", "logo": "https://picserve.netplus.ch/channels/trtturk.png" } },
+  { "name": "2M Maroc FHD", "url": "https://d2qh3gh0k5vp3v.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-n6pess5lwbghr/2M_ES.m3u8", "group": { "title": "10. INTERNATIONAL" }, "tvg": { "id": "2m.ma", "logo": "https://picserve.netplus.ch/channels/2mmaroc.png" } },
+  { "name": "Canal Algerie2", "url": "https://viamotionhsi.netplus.ch/live/eds/canalalgerie/browser-dash/canalalgerie.mpd", "group": { "title": "10. INTERNATIONAL" }, "tvg": { "id": "", "logo": "https://picserve.netplus.ch/channels/canalalgerie.png" } },
+  { "name": "cctv4 HD", "url": "https://viamotionhsi.netplus.ch/live/eds/cctv4/browser-HLS8/cctv4.m3u8", "group": { "title": "10. INTERNATIONAL" }, "tvg": { "id": "cctv4.cn", "logo": "https://picserve.netplus.ch/channels/cctv4.png" } },
 
-   
+  { "name": "Anal", "url": "https://cdn.adultiptv.net/anal.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
+  { "name": "Asian", "url": "https://cdn.adultiptv.net/asian.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
+  { "name": "Big Ass", "url": "https://cdn.adultiptv.net/bigass.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
+  { "name": "Woman", "url": "https://live.redtraffic.net/woman.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
+  { "name": "Threesome", "url": "https://cdn.adultiptv.net/threesome.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
+  { "name": "Compilation", "url": "https://cdn.adultiptv.net/compilation.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
+  { "name": "Gangbang", "url": "https://cdn.adultiptv.net/gangbang.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/cqKFF8A.png" }, "private": true },
+  { "name": "Pornstar", "url": "https://live.redtraffic.xyz/pornstar.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/41Ej2io.png" }, "private": true },
 
+  { "name": "Hardcore", "url": "https://cdn-main.lolokoko.tv/HUSTLER.stream/chunks.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/41Ej2io.png" }, "private": true },
+  { "name": "Private TV HD", "url": "https://cdn-main.lolokoko.tv/Private.stream/playlist.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/89E8Ev2.png" }, "private": true },
+  { "name": "Redlight HD", "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/g0QF5IG.png" }, "private": true },
+  { "name": "Blue Hustler", "url": "http://193.33.240.8:8080/hustler_hd/index.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/G1YaX0Q.png" }, "private": true },
+  { "name": "Miami TV", "url": "https://59ec5453559f0.streamlock.net/miamitv/smil:miamitv/playlist.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/esK4CBZ.png" }, "private": true },
+  { "name": "XXX Cartoons", "url": "http://144.76.58.245:2307/cartoon/index.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "https://i.imgur.com/kNYY78z.png" }, "private": true },
+  { "name": "Tokyo Hot 01", "url": "https://video1.rhsj520.com/nyrm3/2011225/DR/n0011/index.m3u8", "group": { "title": "99. ZONE PRIVÉE" }, "tvg": { "logo": "" }, "private": true }
+]

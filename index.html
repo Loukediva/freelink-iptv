@@ -12,6 +12,7 @@
     <title>Freelink IPTV</title>
     
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.0.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/shaka-player.compiled.js"></script>
     
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
@@ -578,6 +579,7 @@ html, body {
     let filteredChannels = [];
     let displayedCount = 30;
     let hls = null;
+    let shakaPlayer = null;
     let wakeLock = null;
     let sessionTimeout = null;
     const INACTIVITY_DELAY = 10 * 60 * 1000; // 10 minutes
@@ -818,11 +820,14 @@ window.addEventListener('appinstalled', () => {
     }
 
     // --- 4. LECTURE VIDÉO ---
-    function playStream(channel) {
+    async function playStream(channel) {
         const url = typeof channel === 'string' ? channel : channel.url;
         const name = typeof channel === 'string' ? "Flux" : channel.name;
         const logo = typeof channel === 'string' ? "" : (channel.tvg.logo || '');
-        const isMP4 = url.toLowerCase().split(/[?#]/)[0].endsWith('.mp4');
+        
+        const urlLower = url.toLowerCase().split(/[?#]/)[0];
+        const isMP4 = urlLower.endsWith('.mp4');
+        const isDASH = urlLower.endsWith('.mpd');
 
         localStorage.setItem('freelink_last_channel', url);
         errorMessage.style.display = 'none';
@@ -831,61 +836,71 @@ window.addEventListener('appinstalled', () => {
 
         document.getElementById('currentTitle').innerText = name.replace(/\[.*?\]|\(.*?\)/g, '').trim();
         const logoImg = document.getElementById('currentLogo');
-// Si le logo de la chaîne existe, on l'utilise, sinon on met le logo par défaut immédiatement
-logoImg.src = logo || DEFAULT_LOGO;
-
-// Sécurité si le lien du logo de la chaîne est mort
-logoImg.onerror = function() {
-    this.src = DEFAULT_LOGO;
-    this.onerror = null;
-};
+        logoImg.src = logo || DEFAULT_LOGO;
+        logoImg.onerror = function() { this.src = DEFAULT_LOGO; this.onerror = null; };
         document.getElementById('currentChannelInfo').style.display = 'flex';
 
+        // Nettoyage des instances précédentes
         if (hls) { hls.destroy(); hls = null; }
+        if (shakaPlayer) { await shakaPlayer.destroy(); shakaPlayer = null; }
+        
         video.pause();
         video.src = "";
         video.load();
 
         const startPlayback = () => {
-    video.play().then(() => {
-        errorMessage.style.display = 'none';
-    }).catch(error => {
-        console.warn("Autoplay bloqué.");
-        video.muted = true;
-        video.play();
-        // Utilise innerHTML pour ajouter l'icône de haut-parleur
-        errorMessage.innerHTML = "🔊 Sourdine activée. Touchez pour le son.";
-        errorMessage.style.display = 'block';
-    });
-};
+            video.play().then(() => {
+                errorMessage.style.display = 'none';
+                loader.style.display = 'none';
+            }).catch(error => {
+                console.warn("Autoplay bloqué.");
+                video.muted = true;
+                video.play();
+                errorMessage.innerHTML = "🔊 Sourdine activée. Touchez pour le son.";
+                errorMessage.style.display = 'block';
+                loader.style.display = 'none';
+            });
+        };
 
+        // LOGIQUE DE LECTURE MULTI-FORMAT
         if (isMP4) {
             video.src = url;
             startPlayback();
-        } else if (Hls.isSupported()) {
+        } 
+        else if (isDASH) {
+            // Utilisation de Shaka Player pour le DASH
+            shaka.polyfill.installAll();
+            shakaPlayer = new shaka.Player(video);
+            try {
+                await shakaPlayer.load(url);
+                startPlayback();
+                toggleWakeLock(true);
+            } catch (e) {
+                console.error("Erreur Shaka DASH:", e);
+                loader.style.display = 'none';
+            }
+        } 
+        else if (Hls.isSupported()) {
+            // Utilisation de HLS.js pour le M3U8
             hls = new Hls({ maxBufferLength: 30, manifestLoadingMaxRetry: 3 });
             hls.loadSource(url);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                loader.style.display = 'none';
                 if (hls.levels.length > 1) {
-    qualitySelect.style.display = 'block';
-    qualitySelect.innerHTML = '<option value="-1">Qualité : Auto</option>' +
-        hls.levels.map((l, i) => {
-            // Si l.height existe on l'affiche, sinon on affiche l'index ou le bitrate
-            const label = l.height ? `${l.height}p` : `Source ${i+1}`;
-            return `<option value="${i}">${label}</option>`;
-        }).join('');
-} else {
-    qualitySelect.style.display = 'none'; // Très important : cacher si un seul flux
-}
+                    qualitySelect.style.display = 'block';
+                    qualitySelect.innerHTML = '<option value="-1">Qualité : Auto</option>' +
+                        hls.levels.map((l, i) => {
+                            const label = l.height ? `${l.height}p` : `Source ${i+1}`;
+                            return `<option value="${i}">${label}</option>`;
+                        }).join('');
+                }
                 startPlayback();
                 toggleWakeLock(true);
             });
             hls.on(Hls.Events.ERROR, (event, data) => { if (data.fatal) loader.style.display = 'none'; });
         }
     }
-
+    
     // --- 5. LOGIQUE PRIVÉE & MODALE (VERSION AVEC DÉCONNEXION) ---
 function setupPrivateUI() {
     const lockBtn = document.getElementById('lockBtn');
